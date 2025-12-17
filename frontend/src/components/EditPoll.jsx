@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import api from '../api';
-import { ArrowLeft, ChevronLeft, Edit, Trash2, GripVertical, Eye, PlusCircle, Plus, Calendar, Save, X } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, Edit, Trash2, GripVertical, Eye, PlusCircle, Plus, Calendar, Save, X, Settings, Check } from 'lucide-react';
 import QuestionForm from './QuestionForm';
 import DeleteModal from './DeleteModal';
 import Header from './Header';
