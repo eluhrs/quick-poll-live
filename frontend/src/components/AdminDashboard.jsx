@@ -4,8 +4,6 @@ import api from '../api';
 import { PlusCircle, ExternalLink, Archive, PlayCircle, BarChart2, Edit, Trash2, RotateCcw, LogOut, Eye } from 'lucide-react';
 import DeleteModal from './DeleteModal';
 import Header from './Header';
-import { driver } from "driver.js";
-import "driver.js/dist/driver.css";
 
 function AdminDashboard() {
     const [polls, setPolls] = useState([]);

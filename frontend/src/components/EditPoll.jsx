@@ -22,7 +22,7 @@ function EditPoll() {
     const [isAddingQuestion, setIsAddingQuestion] = useState(false);
 
     // Settings State
-    const [settingsForm, setSettingsForm] = useState({ title: '', closes_at: '', color_palette: '', slide_duration: 3 });
+    const [settingsForm, setSettingsForm] = useState({ title: '', closes_at: '', color_palette: '', slide_duration: 3, enable_title_page: false });
     const [isSavingSettings, setIsSavingSettings] = useState(false);
     const [showColorModal, setShowColorModal] = useState(false);
     const [customColors, setCustomColors] = useState(null);
@@ -53,7 +53,8 @@ function EditPoll() {
                 title: res.data.title,
                 closes_at: res.data.closes_at ? res.data.closes_at.slice(0, 16) : '',
                 color_palette: initialPalette,
-                slide_duration: res.data.slide_duration || 3
+                slide_duration: res.data.slide_duration || 3,
+                enable_title_page: res.data.enable_title_page || false
             });
             if (initialCustom) {
                 setCustomColors(initialCustom);
@@ -78,7 +79,8 @@ function EditPoll() {
                 title: settingsForm.title,
                 color_palette: settingsForm.color_palette,
                 closes_at: settingsForm.closes_at ? new Date(settingsForm.closes_at).toISOString() : null,
-                slide_duration: settingsForm.slide_duration
+                slide_duration: settingsForm.slide_duration,
+                enable_title_page: settingsForm.enable_title_page
             };
             await api.put(`/polls/${slug}`, payload);
             fetchPoll(); // Refresh to get updated data
@@ -161,6 +163,8 @@ function EditPoll() {
     };
 
     const isCustomSelected = customColors && settingsForm.color_palette === JSON.stringify(customColors);
+
+    if (!poll) return <div className="min-h-screen flex items-center justify-center text-gray-500 font-bold text-xl">Loading Poll Data...</div>;
 
     return (
         <div className="min-h-screen p-8 pb-32 bg-gray-50">
@@ -387,7 +391,7 @@ function EditPoll() {
                                     </div>
 
                                     {/* Duration Input */}
-                                    <div className="w-1/3 min-w-[150px]">
+                                    <div className="w-1/4 min-w-[120px]">
                                         <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Slide Duration (s)</label>
                                         <input
                                             type="number"
@@ -397,6 +401,22 @@ function EditPoll() {
                                             onChange={(e) => setSettingsForm({ ...settingsForm, slide_duration: parseInt(e.target.value) || 3 })}
                                             className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary focus:ring-0 outline-none transition-colors text-lg font-bold text-center"
                                         />
+                                    </div>
+
+                                    {/* Title Page Checkbox */}
+                                    <div className="flex items-center">
+                                        <label className="flex items-center gap-3 cursor-pointer p-3 rounded-xl hover:bg-gray-50 transition border border-transparent hover:border-gray-100">
+                                            <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center transition-colors ${settingsForm.enable_title_page ? 'bg-primary border-primary' : 'border-gray-300'}`}>
+                                                {settingsForm.enable_title_page && <Check size={16} className="text-white" />}
+                                            </div>
+                                            <input
+                                                type="checkbox"
+                                                className="hidden"
+                                                checked={settingsForm.enable_title_page}
+                                                onChange={(e) => setSettingsForm({ ...settingsForm, enable_title_page: e.target.checked })}
+                                            />
+                                            <span className="font-bold text-gray-700 select-none">Enable Title Page</span>
+                                        </label>
                                     </div>
                                 </div>
 

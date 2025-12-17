@@ -1,12 +1,89 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, RadialBarChart, RadialBar } from 'recharts';
 import { ChevronLeft, ChevronRight, Play, Pause } from 'lucide-react';
 import { PALETTES } from '../constants/palettes';
 
 function PollPlayer({ poll, activePalette, isPreview = false }) {
-    const [currentQIndex, setCurrentQIndex] = useState(0);
-    const [isPlaying, setIsPlaying] = useState(!isPreview); // Auto-play by default unless preview mode
+    // Logic for Title Page: If enabled, it is index -1.
+    // If poll has no questions, index is 0 (waiting).
+    const startIdx = (poll.enable_title_page && !isPreview) ? -1 : 0;
+    // Note: For Preview in Settings tab, user might want to see Title Page? 
+    // "This optional page should be displayed as the first slide in view and preview modes."
+    // So if isPreview is true, we should also respect enable_title_page.
+    // But in Questions tab preview? Just preview.
+    // In Settings tab preview? Just preview.
+    // Let's rely on standard logic: if enable_title_page, start at -1.
 
+    const [currentQIndex, setCurrentQIndex] = useState(0);
+    // We need to set initial state based on props.
+    useEffect(() => {
+        if (poll.enable_title_page && !isPreview) { // Only show title page if enabled and not in a specific preview mode that might override it
+            setCurrentQIndex(-1);
+        } else {
+            setCurrentQIndex(0);
+        }
+    }, [poll.id, poll.enable_title_page, isPreview]);
+    // Note: this reset might be annoying if polling updates, but okay for now.
+
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [timeLeft, setTimeLeft] = useState(poll.slide_duration || 3);
+    const timerRef = useRef(null);
+
+    const questions = poll.questions || [];
+    const totalSlides = questions.length;
+    // If title page enabled, it's virtually "before" index 0.
+
+    const isTitlePage = currentQIndex === -1;
+    const currentQuestion = !isTitlePage ? questions[currentQIndex] : null;
+
+    useEffect(() => {
+        if (isPlaying) {
+            timerRef.current = setInterval(() => {
+                setTimeLeft((prev) => {
+                    if (prev <= 1) {
+                        handleNext();
+                        return poll.slide_duration || 3;
+                    }
+                    return prev - 1;
+                });
+            }, 1000);
+        } else {
+            clearInterval(timerRef.current);
+        }
+        return () => clearInterval(timerRef.current);
+    }, [isPlaying, currentQIndex, poll.slide_duration, questions.length, poll.enable_title_page]);
+
+    const handleNext = () => {
+        setCurrentQIndex(prev => {
+            if (prev === -1) return 0; // Title -> Q1
+            if (prev >= questions.length - 1) {
+                // End of slides
+                if (poll.enable_title_page) return -1; // Loop back to title? or Stop? Standard is Loop.
+                return 0;
+            }
+            return prev + 1;
+        });
+        setTimeLeft(poll.slide_duration || 3);
+    };
+
+    const handlePrev = () => {
+        setCurrentQIndex(prev => {
+            if (prev === 0) {
+                return poll.enable_title_page ? -1 : questions.length - 1;
+            }
+            if (prev === -1) {
+                return questions.length - 1;
+            }
+            return prev - 1;
+        });
+        setTimeLeft(poll.slide_duration || 3);
+    };
+
+    // totalVotes calculation for Title Page
+    const totalVotes = questions.reduce((sum, q) => {
+        const qVotes = q.options ? q.options.reduce((acc, o) => acc + (o.vote_count || 0), 0) : 0;
+        return sum + qVotes;
+    }, 0);
     // Use activePalette prop if provided (for live preview in settings), otherwise use poll's saved palette
     const paletteId = activePalette || poll.color_palette || 'lehigh_soft';
     let COLORS = [];
@@ -23,16 +100,6 @@ function PollPlayer({ poll, activePalette, isPreview = false }) {
 
     // Use slide duration from poll, default to 3s if missing
     const slideDuration = (poll.slide_duration || 3) * 1000;
-
-    useEffect(() => {
-        let interval;
-        if (isPlaying && poll && poll.questions.length > 1) {
-            interval = setInterval(() => {
-                setCurrentQIndex((prev) => (prev + 1) % poll.questions.length);
-            }, slideDuration);
-        }
-        return () => clearInterval(interval);
-    }, [isPlaying, poll, slideDuration]);
 
     if (!poll || !poll.questions || poll.questions.length === 0) {
         return (

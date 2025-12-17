@@ -60,6 +60,7 @@ class PollUpdate(BaseModel):
     closes_at: Optional[datetime] = None
     color_palette: Optional[str] = None
     slide_duration: Optional[int] = None
+    enable_title_page: Optional[bool] = None
     is_active: Optional[bool] = None
 
 class Poll(BaseModel):
