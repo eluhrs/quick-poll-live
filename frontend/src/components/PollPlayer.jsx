@@ -10,8 +10,17 @@ function PollPlayer({ poll, activePalette, isPreview = false }) {
 
     // Use activePalette prop if provided (for live preview in settings), otherwise use poll's saved palette
     const paletteId = activePalette || poll.color_palette || 'lehigh_soft';
-    const currentPalette = PALETTES.find(p => p.id === paletteId) || PALETTES[0];
-    const COLORS = currentPalette.colors;
+    let COLORS = [];
+    const preset = PALETTES.find(p => p.id === paletteId);
+    if (preset) {
+        COLORS = preset.colors;
+    } else {
+        try {
+            COLORS = JSON.parse(paletteId);
+        } catch (e) {
+            COLORS = PALETTES[0].colors; // Fallback
+        }
+    }
 
     // Use slide duration from poll, default to 3s if missing
     const slideDuration = (poll.slide_duration || 3) * 1000;

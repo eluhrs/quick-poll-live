@@ -300,24 +300,29 @@ function EditPoll() {
                         </div>
                     </>
                 ) : activeTab === 'settings' ? (
-                    <div className="max-w-2xl mx-auto">
-                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-                            <h2 className="text-2xl font-bold mb-6 text-gray-800">Poll Settings</h2>
+                    <div className="max-w-3xl mx-auto">
+                        <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+                            <div className="bg-secondary px-8 py-6 border-b border-gray-300">
+                                <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                                    <Settings className="text-primary" /> Poll Settings
+                                </h2>
+                            </div>
 
-                            <form onSubmit={handleSaveSettings} className="space-y-6">
+                            <form onSubmit={handleSaveSettings} className="p-8 space-y-8">
+                                {/* Title Input */}
                                 <div>
                                     <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Poll Title</label>
                                     <input
                                         type="text"
                                         value={settingsForm.title}
                                         onChange={(e) => setSettingsForm({ ...settingsForm, title: e.target.value })}
-                                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary focus:ring-0 outline-none transition-colors text-lg"
-                                        placeholder="Poll Title"
+                                        className="w-full px-4 py-3 text-lg border-2 border-gray-200 rounded-xl focus:border-primary focus:ring-0 outline-none transition-colors"
                                     />
                                 </div>
 
+                                {/* Date & Duration */}
                                 <div className="flex gap-4">
-                                    {/* Date Input (Expanded Width - 2/3) */}
+                                    {/* Date Input */}
                                     <div className="flex-grow">
                                         <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Auto-Close Date</label>
                                         <div className="flex items-center gap-4">
@@ -349,7 +354,7 @@ function EditPoll() {
                                         />
                                     </div>
 
-                                    {/* Duration Input (1/3 Width) */}
+                                    {/* Duration Input */}
                                     <div className="w-1/3 min-w-[150px]">
                                         <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Slide Duration (s)</label>
                                         <input
@@ -363,35 +368,70 @@ function EditPoll() {
                                     </div>
                                 </div>
 
+                                {/* Color Palette */}
                                 <div>
                                     <label className="block text-sm font-bold text-gray-700 mb-3 uppercase tracking-wide">Chart Color Theme</label>
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                        {/* Presets */}
                                         {PALETTES.map(p => (
                                             <button
                                                 key={p.id}
                                                 type="button"
-                                                onClick={() => setSettingsForm({ ...settingsForm, color_palette: p.id })}
+                                                onClick={() => {
+                                                    setSettingsForm({ ...settingsForm, color_palette: p.id });
+                                                    setCustomColors(null); // Deselect custom visual state if switching to preset
+                                                }}
                                                 className={`relative p-3 rounded-xl border-2 text-left transition-all ${settingsForm.color_palette === p.id ? 'border-primary bg-secondary/30 ring-1 ring-primary' : 'border-gray-100 hover:border-gray-300'}`}
                                             >
-                                                <div className="flex gap-1 mb-2">
-                                                    {p.colors.slice(0, 6).map(c => (
-                                                        <div key={c} className="w-4 h-4 rounded-full" style={{ backgroundColor: c }}></div>
+                                                <div className="flex gap-1 mb-2 h-6">
+                                                    {p.colors.map(c => (
+                                                        <div key={c} className="flex-1 h-full rounded-sm" style={{ backgroundColor: c }}></div>
                                                     ))}
                                                 </div>
                                                 <span className={`text-sm font-bold ${settingsForm.color_palette === p.id ? 'text-primary' : 'text-gray-500'}`}>{p.name}</span>
                                             </button>
                                         ))}
+
+                                        {/* Custom Card */}
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                if (!customColors) {
+                                                    setShowColorModal(true);
+                                                } else {
+                                                    // Allow editing if already selected, or just selecting it
+                                                    if (!isCustomSelected) {
+                                                        setSettingsForm({ ...settingsForm, color_palette: JSON.stringify(customColors) });
+                                                    } else {
+                                                        setShowColorModal(true);
+                                                    }
+                                                }
+                                            }}
+                                            className={`relative p-3 rounded-xl border-2 text-left transition-all group ${isCustomSelected ? 'border-primary bg-secondary/30 ring-1 ring-primary' : 'border-gray-100 hover:border-gray-300 border-dashed'}`}
+                                        >
+                                            <div className="flex gap-1 mb-2 h-6 items-center justify-center bg-gray-50 rounded-sm overflow-hidden">
+                                                {customColors ? (
+                                                    customColors.map((c, i) => (
+                                                        <div key={i} className="flex-1 h-full" style={{ backgroundColor: c }}></div>
+                                                    ))
+                                                ) : (
+                                                    <Plus className="text-gray-400 group-hover:text-primary transition" />
+                                                )}
+                                            </div>
+                                            <span className={`text-sm font-bold ${isCustomSelected ? 'text-primary' : 'text-gray-500'}`}>
+                                                {customColors ? 'Custom Colors' : 'Select Custom Colors'}
+                                            </span>
+                                        </button>
                                     </div>
                                 </div>
 
-                                <div className="pt-6 border-t border-gray-100 flex justify-end">
+                                <div className="flex justify-end pt-6 border-t border-gray-100">
                                     <button
                                         type="submit"
                                         disabled={isSavingSettings}
-                                        className="px-8 py-3 rounded-xl bg-primary text-white font-bold shadow-md hover:bg-primary-hover transition transform active:scale-95 flex items-center gap-2"
+                                        className="px-8 py-3 rounded-xl bg-primary text-white font-bold text-lg shadow-lg hover:bg-primary-hover hover:shadow-xl transition transform active:scale-95 flex items-center gap-2"
                                     >
-                                        <Save size={20} />
-                                        {isSavingSettings ? 'Saving...' : 'Save Changes'}
+                                        {isSavingSettings ? 'Saving...' : 'Save Changes'} <Check size={20} />
                                     </button>
                                 </div>
                             </form>
