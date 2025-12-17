@@ -21,7 +21,7 @@ function EditPoll() {
     const [isAddingQuestion, setIsAddingQuestion] = useState(false);
 
     // Settings State
-    const [settingsForm, setSettingsForm] = useState({ title: '', closes_at: '', color_palette: '' });
+    const [settingsForm, setSettingsForm] = useState({ title: '', closes_at: '', color_palette: '', slide_duration: 3 });
     const [isSavingSettings, setIsSavingSettings] = useState(false);
     const settingsDateRef = useRef(null);
 
@@ -37,7 +37,8 @@ function EditPoll() {
             setSettingsForm({
                 title: res.data.title,
                 closes_at: res.data.closes_at ? res.data.closes_at.slice(0, 16) : '', // Format for datetime-local
-                color_palette: res.data.color_palette || 'lehigh_soft'
+                color_palette: res.data.color_palette || 'lehigh_soft',
+                slide_duration: res.data.slide_duration || 3
             });
         } catch (err) {
             console.error(err);
@@ -51,7 +52,8 @@ function EditPoll() {
             const payload = {
                 title: settingsForm.title,
                 color_palette: settingsForm.color_palette,
-                closes_at: settingsForm.closes_at ? new Date(settingsForm.closes_at).toISOString() : null
+                closes_at: settingsForm.closes_at ? new Date(settingsForm.closes_at).toISOString() : null,
+                slide_duration: settingsForm.slide_duration
             };
             await api.put(`/polls/${slug}`, payload);
             fetchPoll(); // Refresh to get updated data
@@ -314,35 +316,51 @@ function EditPoll() {
                                     />
                                 </div>
 
-                                <div>
-                                    <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Auto-Close Date</label>
-                                    <div className="flex items-center gap-4">
-                                        <button
-                                            type="button"
-                                            onClick={() => settingsDateRef.current.showPicker()}
-                                            className={`flex items-center gap-3 px-5 py-3 rounded-xl border-2 transition-all font-bold w-full ${settingsForm.closes_at ? 'border-primary text-primary bg-secondary/30' : 'border-gray-200 text-gray-500 hover:border-gray-300 hover:bg-gray-50'}`}
-                                        >
-                                            <Calendar size={20} />
-                                            <span>{settingsForm.closes_at ? new Date(settingsForm.closes_at).toLocaleString() : 'Schedule Close Date'}</span>
-                                        </button>
-                                        {settingsForm.closes_at && (
+                                <div className="flex gap-4">
+                                    {/* Date Input (Expanded Width - 2/3) */}
+                                    <div className="flex-grow">
+                                        <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Auto-Close Date</label>
+                                        <div className="flex items-center gap-4">
                                             <button
                                                 type="button"
-                                                onClick={() => setSettingsForm({ ...settingsForm, closes_at: '' })}
-                                                className="text-gray-400 hover:text-gray-600 p-2 border border-gray-200 rounded-lg hover:bg-gray-50"
-                                                title="Clear Date"
+                                                onClick={() => settingsDateRef.current.showPicker()}
+                                                className={`flex items-center gap-3 px-5 py-3 rounded-xl border-2 transition-all font-bold w-full ${settingsForm.closes_at ? 'border-primary text-primary bg-secondary/30' : 'border-gray-200 text-gray-500 hover:border-gray-300 hover:bg-gray-50'}`}
                                             >
-                                                <X size={20} />
+                                                <Calendar size={20} />
+                                                <span>{settingsForm.closes_at ? new Date(settingsForm.closes_at).toLocaleString() : 'Schedule Close Date'}</span>
                                             </button>
-                                        )}
+                                            {settingsForm.closes_at && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setSettingsForm({ ...settingsForm, closes_at: '' })}
+                                                    className="text-gray-400 hover:text-gray-600 p-2 border border-gray-200 rounded-lg hover:bg-gray-50"
+                                                    title="Clear Date"
+                                                >
+                                                    <X size={20} />
+                                                </button>
+                                            )}
+                                        </div>
+                                        <input
+                                            type="datetime-local"
+                                            ref={settingsDateRef}
+                                            value={settingsForm.closes_at}
+                                            onChange={(e) => setSettingsForm({ ...settingsForm, closes_at: e.target.value })}
+                                            className="sr-only"
+                                        />
                                     </div>
-                                    <input
-                                        type="datetime-local"
-                                        ref={settingsDateRef}
-                                        value={settingsForm.closes_at}
-                                        onChange={(e) => setSettingsForm({ ...settingsForm, closes_at: e.target.value })}
-                                        className="sr-only"
-                                    />
+
+                                    {/* Duration Input (1/3 Width) */}
+                                    <div className="w-1/3 min-w-[150px]">
+                                        <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Slide Duration (s)</label>
+                                        <input
+                                            type="number"
+                                            min="1"
+                                            max="60"
+                                            value={settingsForm.slide_duration}
+                                            onChange={(e) => setSettingsForm({ ...settingsForm, slide_duration: parseInt(e.target.value) || 3 })}
+                                            className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary focus:ring-0 outline-none transition-colors text-lg font-bold text-center"
+                                        />
+                                    </div>
                                 </div>
 
                                 <div>

@@ -59,17 +59,19 @@ class PollUpdate(BaseModel):
     title: Optional[str] = None
     closes_at: Optional[datetime] = None
     color_palette: Optional[str] = None
+    slide_duration: Optional[int] = None
     is_active: Optional[bool] = None
 
-class Poll(PollBase):
+class Poll(BaseModel):
     id: int
+    title: str
     slug: str
-    is_active: bool
+    owner_id: int
     created_at: datetime
-    closed_at: Optional[datetime]
     closes_at: Optional[datetime]
     color_palette: str
-    owner_id: int
+    slide_duration: int
+    is_active: bool
     questions: List[Question] = []
     class Config:
         orm_mode = True

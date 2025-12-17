@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, RadialBarChart, RadialBar } from 'recharts';
 import { ChevronLeft, ChevronRight, Play, Pause } from 'lucide-react';
+import ReactWordcloud from 'react-wordcloud';
 import { PALETTES } from '../constants/palettes';
 
 function PollPlayer({ poll, activePalette, isPreview = false }) {
@@ -12,15 +13,18 @@ function PollPlayer({ poll, activePalette, isPreview = false }) {
     const currentPalette = PALETTES.find(p => p.id === paletteId) || PALETTES[0];
     const COLORS = currentPalette.colors;
 
+    // Use slide duration from poll, default to 3s if missing
+    const slideDuration = (poll.slide_duration || 3) * 1000;
+
     useEffect(() => {
         let interval;
         if (isPlaying && poll && poll.questions.length > 1) {
             interval = setInterval(() => {
                 setCurrentQIndex((prev) => (prev + 1) % poll.questions.length);
-            }, 5000);
+            }, slideDuration);
         }
         return () => clearInterval(interval);
-    }, [isPlaying, poll]);
+    }, [isPlaying, poll, slideDuration]);
 
     if (!poll || !poll.questions || poll.questions.length === 0) {
         return (
@@ -49,15 +53,58 @@ function PollPlayer({ poll, activePalette, isPreview = false }) {
         const visType = question.visualization_type || 'bar';
         const heightClass = isPreview ? "h-[300px]" : "h-[500px]";
         const fontSize = isPreview ? 12 : 18;
+        const axisColor = "#374151"; // Darker axis color for contrast
 
         if (visType === 'wordcloud') {
-            // Wordcloud requires text aggregation logic, keeping it simple or skipping detailed impl for this step as libraries differ.
-            // If we reuse the logic from PollDisplay, we need `react-wordcloud`.
-            // For brevity in this players file, I'll stick to Recharts types or copy wordcloud if critical.
-            // Given the user wants "Slide show within it", I should probably support it.
-            // I'll return a placeholder for Wordcloud to keep this file clean unless `react-wordcloud` is moved here.
-            // Let's assume standard charts first.
-            return <div className={`${heightClass} flex items-center justify-center text-gray-400`}>Word Cloud Visualization</div>;
+            // Prepare data for word cloud
+            let cloudData = [];
+            if (question.question_type === 'open_ended') {
+                const freqMap = {};
+                if (question.votes) {
+                    question.votes.forEach(v => {
+                        const txt = v.text_answer;
+                        if (txt) {
+                            freqMap[txt] = (freqMap[txt] || 0) + 1;
+                        }
+                    });
+                }
+                cloudData = Object.keys(freqMap).map(txt => ({
+                    text: txt,
+                    value: freqMap[txt]
+                }));
+            } else {
+                cloudData = data.map(d => ({
+                    text: d.name,
+                    value: d.votes
+                }));
+            }
+
+            // Basic options for wordcloud
+            const options = {
+                rotations: 2,
+                rotationAngles: [-90, 0],
+                fontSizes: [20, 60],
+                enableTooltip: true,
+                deterministic: true,
+                fontFamily: 'impact',
+            };
+            // Callback to color words based on palette
+            const callbacks = {
+                getWordColor: (word) => COLORS[Math.floor(Math.random() * COLORS.length)],
+            }
+
+            return (
+                <div className={`${heightClass} w-full`}>
+                    {cloudData.length > 0 ? (
+                        <div style={{ width: '100%', height: '100%' }}>
+                            <ReactWordcloud words={cloudData} options={options} callbacks={callbacks} />
+                        </div>
+                    ) : (
+                        <div className="flex items-center justify-center h-full text-gray-400">Waiting for responses...</div>
+                    )}
+                </div>
+            );
+
         } else if (visType === 'pie') {
             return (
                 <div className={`${heightClass} w-full`}>
@@ -78,7 +125,7 @@ function PollPlayer({ poll, activePalette, isPreview = false }) {
                                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                 ))}
                             </Pie>
-                            <Legend iconSize={isPreview ? 10 : 20} wrapperStyle={{ fontSize: isPreview ? '0.8rem' : '1.2rem' }} />
+                            <Legend iconSize={isPreview ? 10 : 20} wrapperStyle={{ fontSize: isPreview ? '0.8rem' : '1.2rem', color: axisColor }} />
                         </PieChart>
                     </ResponsiveContainer>
                 </div>
@@ -89,8 +136,8 @@ function PollPlayer({ poll, activePalette, isPreview = false }) {
                     <ul className="space-y-2">
                         {data.map((d, i) => (
                             <li key={i} className={`p-3 bg-white rounded shadow-sm flex justify-between items-center ${isPreview ? 'text-sm' : 'text-xl'}`}>
-                                <span>{d.name}</span>
-                                <span className="font-bold bg-gray-100 px-3 py-1 rounded text-gray-800">{d.votes}</span>
+                                <span style={{ color: axisColor }}>{d.name}</span>
+                                <span className={`font-bold bg-gray-100 px-3 py-1 rounded text-gray-900 border border-gray-200`}>{d.votes}</span>
                             </li>
                         ))}
                     </ul>
@@ -101,9 +148,9 @@ function PollPlayer({ poll, activePalette, isPreview = false }) {
                 <div className={`${heightClass} w-full`}>
                     <ResponsiveContainer width="100%" height="100%">
                         <RadarChart cx="50%" cy="50%" outerRadius="80%" data={data}>
-                            <PolarGrid stroke="#e5e7eb" />
-                            <PolarAngleAxis dataKey="name" tick={{ fill: COLORS[0], fontSize: fontSize, fontWeight: 'bold' }} />
-                            <PolarRadiusAxis angle={30} domain={[0, 'auto']} stroke="#9ca3af" />
+                            <PolarGrid stroke="#9ca3af" /> {/* Darker grid */}
+                            <PolarAngleAxis dataKey="name" tick={{ fill: axisColor, fontSize: fontSize, fontWeight: 'bold' }} />
+                            <PolarRadiusAxis angle={30} domain={[0, 'auto']} stroke={axisColor} />
                             <Radar
                                 name="Votes"
                                 dataKey="votes"
@@ -131,7 +178,7 @@ function PollPlayer({ poll, activePalette, isPreview = false }) {
                                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                 ))}
                             </RadialBar>
-                            <Legend iconSize={10} layout="vertical" verticalAlign="middle" wrapperStyle={{ right: 0 }} />
+                            <Legend iconSize={10} layout="vertical" verticalAlign="middle" wrapperStyle={{ right: 0, color: axisColor }} />
                         </RadialBarChart>
                     </ResponsiveContainer>
                 </div>
@@ -140,15 +187,15 @@ function PollPlayer({ poll, activePalette, isPreview = false }) {
 
         // Default Bar
         const renderCustomBarLabel = ({ x, y, width, value }) => {
-            return <text x={x + width / 2} y={y} fill={COLORS[0]} textAnchor="middle" dy={-6} fontSize={fontSize} fontWeight="bold">{value}</text>;
+            return <text x={x + width / 2} y={y} fill={axisColor} textAnchor="middle" dy={-6} fontSize={fontSize} fontWeight="bold">{value}</text>;
         };
 
         return (
             <div className={`${heightClass} w-full`}>
                 <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                        <XAxis dataKey="name" stroke={COLORS[0]} tick={{ fill: COLORS[0], fontSize: fontSize, fontWeight: 500 }} />
-                        <YAxis stroke={COLORS[0]} tick={{ fill: COLORS[0], fontSize: fontSize }} allowDecimals={false} />
+                        <XAxis dataKey="name" stroke={axisColor} tick={{ fill: axisColor, fontSize: fontSize, fontWeight: 500 }} />
+                        <YAxis stroke={axisColor} tick={{ fill: axisColor, fontSize: fontSize }} allowDecimals={false} />
                         <Bar dataKey="votes" radius={[4, 4, 0, 0]} label={renderCustomBarLabel} isAnimationActive={false}>
                             {data.map((entry, index) => (
                                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />

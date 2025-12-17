@@ -2,7 +2,7 @@ export const PALETTES = [
     {
         id: 'lehigh_soft',
         name: 'Lehigh Soft',
-        colors: ['#7a6e6e', '#dcdcdc', '#8d8282', '#a89f9f', '#5e5454', '#bfb2b2']
+        colors: ['#7a6e6e', '#dcdcdc', '#8d8282', '#a89f9f', '#5e5454', '#e8e6e6']
     },
     {
         id: 'vibrant',
@@ -17,6 +17,6 @@ export const PALETTES = [
     {
         id: 'dark',
         name: 'Dark Mode',
-        colors: ['#1f2937', '#4b5563', '#9ca3af', '#6b7280', '#374151', '#787f8a']
+        colors: ['#1f2937', '#4b5563', '#9ca3af', '#6b7280', '#374151', '#e5e7eb']
     }
 ];
