@@ -1,9 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
-import { Plus, Trash, ArrowLeft, Calendar, ChevronRight } from 'lucide-react';
+import { Plus, Trash, ArrowLeft, Calendar, ChevronRight, X } from 'lucide-react';
 import Header from './Header';
-
 import { PALETTES } from '../constants/palettes';
 
 function CreatePoll() {
@@ -78,10 +77,10 @@ function CreatePoll() {
                                         <button
                                             type="button"
                                             onClick={() => setClosesAt('')}
-                                            className="text-red-400 hover:text-red-600 p-2"
+                                            className="text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-100 rounded-lg transition"
                                             title="Clear Date"
                                         >
-                                            <Trash size={18} />
+                                            <X size={20} />
                                         </button>
                                     )}
                                 </div>
@@ -107,7 +106,7 @@ function CreatePoll() {
                                             className={`relative p-3 rounded-xl border-2 text-left transition-all ${palette === p.id ? 'border-primary bg-secondary/30 ring-1 ring-primary' : 'border-gray-100 hover:border-gray-300'}`}
                                         >
                                             <div className="flex gap-1 mb-2">
-                                                {p.colors.map(c => (
+                                                {p.colors.slice(0, 6).map(c => (
                                                     <div key={c} className="w-4 h-4 rounded-full" style={{ backgroundColor: c }}></div>
                                                 ))}
                                             </div>

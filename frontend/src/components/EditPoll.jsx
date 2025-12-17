@@ -1,17 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import api from '../api';
-import { ArrowLeft, ChevronLeft, Edit, Trash2, GripVertical, Eye, PlusCircle, Plus, Calendar, Save } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, Edit, Trash2, GripVertical, Eye, PlusCircle, Plus, Calendar, Save, X } from 'lucide-react';
 import QuestionForm from './QuestionForm';
 import DeleteModal from './DeleteModal';
 import Header from './Header';
 import { PALETTES } from '../constants/palettes';
+import PollPlayer from './PollPlayer';
 
 function EditPoll() {
     const { slug } = useParams();
     const navigate = useNavigate();
     const [poll, setPoll] = useState(null);
-    const [activeTab, setActiveTab] = useState('questions'); // 'questions' | 'settings'
+    const [activeTab, setActiveTab] = useState('questions'); // 'questions' | 'settings' | 'preview'
 
     // Question State
     const [editingQuestionId, setEditingQuestionId] = useState(null);
@@ -151,15 +152,6 @@ function EditPoll() {
                 {/* Poll Title & Preview Action */}
                 <div className="flex items-center gap-4 mb-4">
                     <h1 className="text-3xl font-bold text-gray-900">{poll.title}</h1>
-                    <div className="flex items-center gap-4">
-                        <Link
-                            to={`/${slug}/view`}
-                            target="_blank"
-                            className="flex items-center gap-2 border border-primary text-primary px-4 py-2 rounded-lg text-sm font-bold hover:bg-gray-50 transition transform active:scale-95"
-                        >
-                            <Eye size={18} /> Preview Poll
-                        </Link>
-                    </div>
                 </div>
 
                 {/* Tab Navigation */}
@@ -178,6 +170,13 @@ function EditPoll() {
                         Settings
                         {activeTab === 'settings' && <span className="absolute bottom-[-1px] left-0 w-full h-1 bg-primary rounded-t-md"></span>}
                     </button>
+                    <button
+                        onClick={() => setActiveTab('preview')}
+                        className={`pb-3 text-lg font-bold transition-all relative ${activeTab === 'preview' ? 'text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
+                    >
+                        Preview
+                        {activeTab === 'preview' && <span className="absolute bottom-[-1px] left-0 w-full h-1 bg-primary rounded-t-md"></span>}
+                    </button>
                 </div>
 
                 {activeTab === 'questions' ? (
@@ -195,8 +194,8 @@ function EditPoll() {
                                 <div className="divide-y divide-gray-200">
                                     {poll.questions.map((q, i) => (
                                         <div key={q.id} className={`border-b border-gray-200 last:border-0 transition-all duration-200 ${editingQuestionId === q.id
-                                                ? 'bg-gray-50 border-l-4 border-l-primary shadow-md my-4 rounded-lg border border-gray-300 transform scale-[1.01]'
-                                                : 'bg-white hover:bg-gray-50'
+                                            ? 'bg-gray-50 border-l-4 border-l-primary shadow-md my-4 rounded-lg border border-gray-300 transform scale-[1.01]'
+                                            : 'bg-white hover:bg-gray-50'
                                             }`}>
                                             <div
                                                 className="grid grid-cols-12 gap-4 px-6 py-4 items-center hover:bg-secondary-hover transition-colors"
@@ -298,7 +297,7 @@ function EditPoll() {
                             )}
                         </div>
                     </>
-                ) : (
+                ) : activeTab === 'settings' ? (
                     <div className="max-w-2xl mx-auto">
                         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
                             <h2 className="text-2xl font-bold mb-6 text-gray-800">Poll Settings</h2>
@@ -330,10 +329,10 @@ function EditPoll() {
                                             <button
                                                 type="button"
                                                 onClick={() => setSettingsForm({ ...settingsForm, closes_at: '' })}
-                                                className="text-red-400 hover:text-red-600 p-2 border border-gray-200 rounded-lg hover:bg-red-50"
+                                                className="text-gray-400 hover:text-gray-600 p-2 border border-gray-200 rounded-lg hover:bg-gray-50"
                                                 title="Clear Date"
                                             >
-                                                <Trash2 size={20} />
+                                                <X size={20} />
                                             </button>
                                         )}
                                     </div>
@@ -378,6 +377,18 @@ function EditPoll() {
                                     </button>
                                 </div>
                             </form>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="max-w-4xl mx-auto">
+                        <div className="bg-white rounded-xl shadow-lg border-2 border-gray-900 border-opacity-10 overflow-hidden">
+                            {/* Preview Container: 1px border is handled by border-opacity-10 combined with standard border width or specific class. User asked for 1px rectangle. standard border is 1px. */}
+                            <div className="border border-gray-200 rounded-lg p-2 m-4 bg-gray-50/50">
+                                <PollPlayer poll={poll} activePalette={settingsForm.color_palette} isPreview={true} />
+                            </div>
+                            <div className="p-4 bg-gray-50 text-center text-sm text-gray-400">
+                                This is a preview of how your poll will appear to participants.
+                            </div>
                         </div>
                     </div>
                 )}
