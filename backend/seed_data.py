@@ -38,13 +38,25 @@ def seed_data():
                 "options": ["Python", "JavaScript", "Rust", "Go", "Java", "C++"]
             },
             {
-                "text": "Which framework do you prefer?",
+                "text": "Which framework distribution?",
                 "type": "multiple_choice",
-                "vis": "pie",
+                "vis": "donut",
                 "options": ["React", "Vue", "Angular", "Svelte", "Next.js"]
             },
             {
-                "text": "Rate the team's strengths (Distribution)",
+                "text": "Project Priorities (Treemap)",
+                "type": "multiple_choice",
+                "vis": "treemap",
+                "options": ["Technical Debt", "New Features", "Customer Support", "Documentation", "Testing Infrastructure", "Security Audits", "Performance Tuning"]
+            },
+            {
+                "text": "What is the biggest challenge in deployment? (Horizontal Bar)",
+                "type": "multiple_choice",
+                "vis": "horizontal_bar",
+                "options": ["Coordinating with multiple teams on release schedules", "Dealing with flaky integration tests in CI/CD", "Database migration compatibility issues", "Environment configuration drift", "Legacy system dependencies"]
+            },
+            {
+                "text": "Rate the team's strengths (Radar)",
                 "type": "multiple_choice",
                 "vis": "radar",
                 "options": ["Communication", "Coding Speed", "Architecture", "Testing", "Design"]
@@ -59,7 +71,7 @@ def seed_data():
                  "text": "One word to describe 2024?",
                  "type": "open_ended",
                  "vis": "wordcloud",
-                 "options": [] # Open ended has no options usually, but we simulate text votes
+                 "options": [] 
             },
             {
                 "text": "Favorite Pizza Topping (Word Cloud)",

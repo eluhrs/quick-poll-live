@@ -91,7 +91,10 @@ function QuestionForm({ initialData, onSubmit, onCancel, confirmLabel = "Add Que
                         {question.type === 'multiple_choice' ? (
                             <>
                                 <option value="bar">Bar Chart</option>
+                                <option value="horizontal_bar">Horizontal Bar Chart</option>
                                 <option value="pie">Pie Chart</option>
+                                <option value="donut">Donut Chart</option>
+                                <option value="treemap">Treemap</option>
                                 <option value="radar">Radar Chart</option>
                                 <option value="radial_bar">Radial Bar Chart</option>
                                 <option value="wordcloud">Word Cloud</option>

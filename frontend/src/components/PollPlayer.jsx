@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, RadialBarChart, RadialBar } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, RadialBarChart, RadialBar, Treemap, LabelList } from 'recharts';
 import { ChevronLeft, ChevronRight, Play, Pause } from 'lucide-react';
 import { PALETTES } from '../constants/palettes';
 
@@ -164,15 +164,28 @@ function PollPlayer({ poll, activePalette, enableTitlePage, isPreview = false })
             } else {
                 cloudData = data.map(d => ({ text: d.name, value: d.votes }));
             }
-            const options = { rotations: 2, rotationAngles: [-90, 0], fontSizes: [20, 60], enableTooltip: true, deterministic: true, fontFamily: 'impact' };
+            const options = { rotations: 2, rotationAngles: [-90, 0], fontSizes: [25, 75], enableTooltip: true, deterministic: true, fontFamily: 'impact' };
+
+            // Dynamic Scaling
+            const vals = cloudData.map(d => d.value);
+            const minVal = Math.min(...vals);
+            const maxVal = Math.max(...vals);
+            const minSize = 25;
+            const maxSize = 75;
 
             return (
-                <div className={`${heightClass} w-full flex flex-wrap content-center justify-center gap-4 p-4 overflow-y-auto`}>
+                <div className={`${heightClass} w-full flex flex-wrap content-center justify-center gap-2 p-4 overflow-y-auto`}>
                     {cloudData.length > 0 ? (
                         cloudData.map((w, i) => {
-                            const size = Math.max(12, Math.min(60, 12 + (w.value * 5)));
+                            let size = minSize;
+                            if (maxVal > minVal) {
+                                size = minSize + ((w.value - minVal) / (maxVal - minVal)) * (maxSize - minSize);
+                            } else {
+                                size = (minSize + maxSize) / 2; // All same
+                            }
+
                             return (
-                                <span key={i} style={{ fontSize: `${size}px`, color: COLORS[i % COLORS.length], fontFamily: 'Impact, sans-serif' }} className="transition-all hover:scale-110 cursor-default" title={`${w.text}: ${w.value}`}>
+                                <span key={i} style={{ fontSize: `${size}px`, color: COLORS[i % COLORS.length], fontFamily: 'Impact, sans-serif' }} className="transition-all hover:scale-110 cursor-default leading-none" title={`${w.text}: ${w.value}`}>
                                     {w.text}
                                 </span>
                             );
@@ -232,6 +245,86 @@ function PollPlayer({ poll, activePalette, enableTitlePage, isPreview = false })
                             </RadialBar>
                             <Legend iconSize={10} layout="vertical" verticalAlign="middle" wrapperStyle={{ right: 0, color: axisColor }} />
                         </RadialBarChart>
+                    </ResponsiveContainer>
+                </div>
+            );
+        } else if (visType === 'donut') {
+            return (
+                <div className={`${heightClass} w-full`}>
+                    <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                            <Pie data={data} cx="50%" cy="50%" innerRadius={isPreview ? 40 : 100} outerRadius={isPreview ? 80 : 200} labelLine={!isPreview} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} fill="#8884d8" dataKey="votes" isAnimationActive={false}>
+                                {data.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
+                            </Pie>
+                            <Legend iconSize={isPreview ? 10 : 20} wrapperStyle={{ fontSize: isPreview ? '0.8rem' : '1.2rem', color: axisColor }} />
+                        </PieChart>
+                    </ResponsiveContainer>
+                </div>
+            );
+        } else if (visType === 'horizontal_bar') {
+            const renderCustomBarLabel = ({ x, y, width, height, value }) => {
+                return <text x={x + width + 10} y={y + height / 2 + (fontSize / 3)} fill={axisColor} textAnchor="start" fontSize={fontSize} fontWeight="bold">{value}</text>;
+            };
+            return (
+                <div className={`${heightClass} w-full`}>
+                    <ResponsiveContainer width="100%" height="100%">
+                        <BarChart layout="vertical" data={data} margin={{ top: 20, right: 50, left: 20, bottom: 5 }}>
+                            <XAxis type="number" stroke={axisColor} tick={{ fill: axisColor, fontSize: fontSize }} allowDecimals={false} hide />
+                            <YAxis type="category" dataKey="name" stroke={axisColor} tick={{ fill: axisColor, fontSize: fontSize, fontWeight: 500 }} width={150} />
+                            <Bar dataKey="votes" radius={[0, 4, 4, 0]} label={renderCustomBarLabel} isAnimationActive={false}>
+                                {data.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
+                            </Bar>
+                        </BarChart>
+                    </ResponsiveContainer>
+                </div>
+            );
+        } else if (visType === 'treemap') {
+            // Custom Content for Treemap to show labels
+            const CustomTreemapContent = (props) => {
+                const { root, depth, x, y, width, height, index, payload, colors, rank, name, value } = props;
+                const safeName = name || (payload && payload.name) || '';
+                const safeWidth = width || 0;
+
+                return (
+                    <g>
+                        <rect
+                            x={x}
+                            y={y}
+                            width={width}
+                            height={height}
+                            style={{
+                                fill: colors[index % colors.length],
+                                stroke: '#fff',
+                                strokeWidth: 2 / (depth + 1e-10),
+                                strokeOpacity: 1 / (depth + 1e-10),
+                            }}
+                        />
+                        {safeWidth > 40 && height > 40 && safeName && (
+                            <foreignObject x={x} y={y} width={width} height={height}>
+                                <div className="w-full h-full flex flex-col items-center justify-center text-white p-1 text-center overflow-hidden leading-tight">
+                                    <span className="font-bold w-full break-normal" style={{ fontSize: Math.max(10, Math.min(16, (safeWidth * 1.8) / Math.max(safeName.length, 4))) }}>{safeName}</span>
+                                    <span className="text-xs">{value}</span>
+                                </div>
+                            </foreignObject>
+                        )}
+                    </g>
+                );
+            };
+
+            return (
+                <div className={`${heightClass} w-full`}>
+                    <ResponsiveContainer width="100%" height="100%">
+                        <Treemap
+                            data={data}
+                            dataKey="votes"
+                            aspectRatio={4 / 3}
+                            stroke="#fff"
+                            fill="#8884d8"
+                            content={<CustomTreemapContent colors={COLORS} />}
+                            isAnimationActive={false}
+                        >
+                            <Tooltip />
+                        </Treemap>
                     </ResponsiveContainer>
                 </div>
             );
