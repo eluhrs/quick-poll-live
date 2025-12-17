@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Check, X } from 'lucide-react';
+import { Plus, Check, X, Save } from 'lucide-react';
 
 function QuestionForm({ initialData, onSubmit, onCancel, confirmLabel = "Add Question", isEditing = false }) {
     const defaultQuestion = {
@@ -130,18 +130,23 @@ function QuestionForm({ initialData, onSubmit, onCancel, confirmLabel = "Add Que
                 </div>
             )}
 
-            <div className="flex justify-end gap-3 pt-4 border-t border-gray-100 mt-4">
+            <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
                 {onCancel && (
-                    <button onClick={onCancel} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition">
+                    <button
+                        type="button"
+                        onClick={onCancel}
+                        className="px-4 py-2 rounded-lg bg-secondary text-secondary-text border border-primary font-bold hover:bg-secondary-hover transition"
+                    >
                         Cancel
                     </button>
                 )}
                 <button
+                    type="submit"
                     onClick={handleSubmit}
                     disabled={!question.text}
-                    className={`px-4 py-2 rounded-lg text-white flex items-center gap-2 transition ${!question.text ? 'bg-gray-400 cursor-not-allowed' : 'bg-gray-900 hover:bg-black'}`}
+                    className={`px-4 py-2 rounded-lg bg-primary text-white font-bold hover:bg-primary-hover shadow-sm transition flex items-center gap-2 ${!question.text ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
-                    {isEditing ? <Check size={18} /> : <Plus size={18} />}
+                    <Save size={18} />
                     {confirmLabel}
                 </button>
             </div>

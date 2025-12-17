@@ -24,10 +24,10 @@ function Header() {
             </div>
 
             <div className="flex gap-4">
-                <Link to="/dashboard" className="flex items-center gap-2 bg-[#502d0e] text-white px-4 py-2 rounded-lg hover:bg-[#3d220b] transition shadow-sm">
+                <Link to="/dashboard" className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-hover transition shadow-sm font-bold">
                     <BarChart2 size={20} /> Dashboard
                 </Link>
-                <button onClick={handleLogout} className="flex items-center gap-2 bg-white text-[#502d0e] px-4 py-2 rounded-lg border border-[#502d0e] hover:bg-[#fff9f5] transition">
+                <button onClick={handleLogout} className="flex items-center gap-2 bg-secondary text-secondary-text px-4 py-2 rounded-lg border border-primary hover:bg-secondary-hover transition font-bold">
                     <LogOut size={20} /> Logout
                 </button>
             </div>

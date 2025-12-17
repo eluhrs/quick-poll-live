@@ -53,6 +53,34 @@ def get_poll(slug: str, db: Session = Depends(database.get_db)):
         raise HTTPException(status_code=404, detail="Poll not found")
     return poll
 
+@router.put("/{slug}", response_model=schemas.Poll)
+def update_poll(slug: str, poll_update: schemas.PollUpdate, db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_user)):
+    poll = db.query(models.Poll).filter(models.Poll.slug == slug, models.Poll.owner_id == current_user.id).first()
+    if not poll:
+        raise HTTPException(status_code=404, detail="Poll not found")
+    
+    if poll_update.title is not None:
+        poll.title = poll_update.title
+    
+    # Handle closes_at specifically (allow setting to None to clear generic nullable fields, but logic here is simple)
+    # Pydantic sends None if not set, so typical PATCH behavior is trickier. Here we assume we send what we want to update.
+    # If the user wants to Clear the date, they might send a specific signal or we treat explicit None difference. 
+    # For now, let's assume if it's in the payload we update it.
+    # But FastAPI Body default is None. So if not provided, it's None.
+    # We should check update_data dict or use exclude_unset=True in Pydantic v2 calls, but here generic check:
+    
+    # Simple approach: Update if not None. To CLEAR date, frontend might need to send a specific value or we verify `exclude_unset`.
+    # Let's strictly check against exclude_unset if passing the model directly, but here separate fields.
+    # Actually, let's just use `poll_update.dict(exclude_unset=True)` logic.
+    
+    update_data = poll_update.dict(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(poll, key, value)
+
+    db.commit()
+    db.refresh(poll)
+    return poll
+
 @router.put("/{slug}/close", response_model=schemas.Poll)
 def close_poll(slug: str, db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_user)):
     poll = db.query(models.Poll).filter(models.Poll.slug == slug, models.Poll.owner_id == current_user.id).first()

@@ -60,8 +60,8 @@ function LandingPage() {
                 {!isAdminLogin ? (
                     <>
                         <div>
-                            <h1 className="text-4xl font-serif font-bold tracking-tight text-[#502d0e]">Live Poll</h1>
-                            <p className="text-gray-600 text-lg mt-2">Enter the code to join the session</p>
+                            <h1 className="text-4xl font-serif font-bold tracking-tight text-primary">Live Poll</h1>
+                            <p className="text-gray-600 text-lg mt-2">Enter a poll code to participate</p>
                         </div>
 
                         <form onSubmit={handleJoin} className="space-y-6">
@@ -70,21 +70,21 @@ function LandingPage() {
                                 value={code}
                                 onChange={(e) => setCode(e.target.value)}
                                 placeholder="Enter 6-character code"
-                                className="w-full px-6 py-4 rounded-lg border-2 border-gray-300 text-center text-xl font-mono tracking-widest focus:outline-none focus:border-[#502d0e] focus:ring-0 shadow-sm bg-white"
+                                className="w-full px-6 py-4 rounded-lg border-2 border-gray-300 text-center text-xl font-mono tracking-widest focus:outline-none focus:border-primary focus:ring-0 shadow-sm bg-white"
                                 maxLength={6}
                             />
                             <button
                                 type="submit"
-                                className="w-full bg-[#502d0e] text-white font-bold py-4 rounded-lg hover:bg-[#3d220b] transition transform active:scale-95 flex items-center justify-center gap-2"
+                                className="w-full bg-primary text-white font-bold py-4 rounded-lg hover:bg-primary-hover transition transform active:scale-95 flex items-center justify-center gap-2"
                             >
-                                Join Session <ArrowRight size={20} />
+                                Join Live Poll <ArrowRight size={20} />
                             </button>
                         </form>
                     </>
                 ) : (
                     <>
                         <div>
-                            <h1 className="text-4xl font-serif font-bold tracking-tight text-[#502d0e]">Live Poll Login</h1>
+                            <h1 className="text-4xl font-serif font-bold tracking-tight text-primary">Live Poll Login</h1>
                             <p className="text-gray-600 text-lg mt-2">Enter your credentials</p>
                         </div>
 
@@ -96,18 +96,18 @@ function LandingPage() {
                                 value={username}
                                 onChange={(e) => setUsername(e.target.value)}
                                 placeholder="Username"
-                                className="w-full px-6 py-3 rounded-lg border-2 border-gray-300 text-lg focus:outline-none focus:border-[#502d0e] focus:ring-0 shadow-sm bg-white"
+                                className="w-full px-6 py-3 rounded-lg border-2 border-gray-300 text-lg focus:outline-none focus:border-primary focus:ring-0 shadow-sm bg-white"
                             />
                             <input
                                 type="password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 placeholder="Password"
-                                className="w-full px-6 py-3 rounded-lg border-2 border-gray-300 text-lg focus:outline-none focus:border-[#502d0e] focus:ring-0 shadow-sm bg-white"
+                                className="w-full px-6 py-3 rounded-lg border-2 border-gray-300 text-lg focus:outline-none focus:border-primary focus:ring-0 shadow-sm bg-white"
                             />
                             <button
                                 type="submit"
-                                className="w-full bg-[#502d0e] text-white font-bold py-4 rounded-lg hover:bg-[#3d220b] transition transform active:scale-95 flex items-center justify-center gap-2"
+                                className="w-full bg-primary text-white font-bold py-4 rounded-lg hover:bg-primary-hover transition transform active:scale-95 flex items-center justify-center gap-2"
                             >
                                 Login
                             </button>

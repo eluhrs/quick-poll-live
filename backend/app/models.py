@@ -28,6 +28,7 @@ class Poll(Base):
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     closed_at = Column(DateTime, nullable=True) # Manually closed
     closes_at = Column(DateTime, nullable=True) # Auto-close schedule
+    color_palette = Column(String, default="lehigh_soft") # lehigh_soft, vibrant, pastel, dark
     owner_id = Column(Integer, ForeignKey("users.id"))
 
     owner = relationship("User", back_populates="polls")

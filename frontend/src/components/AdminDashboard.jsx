@@ -12,6 +12,7 @@ function AdminDashboard() {
     const [loading, setLoading] = useState(true);
     const [modalConfig, setModalConfig] = useState({ isOpen: false, type: null, slug: null });
     const [copiedId, setCopiedId] = useState(null);
+    const [activeTab, setActiveTab] = useState('active');
     const navigate = useNavigate();
 
     const confirmDelete = (slug) => {
@@ -125,25 +126,64 @@ function AdminDashboard() {
             <div className="max-w-7xl mx-auto">
                 <Header />
 
-                <div className="space-y-12">
-                    <div id="active-polls">
-                        <Section
-                            title="Active Polls"
-                            polls={activePolls}
-                            onClose={confirmClose}
-                            onDelete={confirmDelete}
-                            active
-                            onCopy={handleCopy}
-                            copiedId={copiedId}
-                            headerAction={
-                                <Link to="/dashboard/create" className="text-sm border border-[#6b4e31] text-[#6b4e31] px-3 py-1 rounded hover:bg-[#6b4e31] hover:text-white transition flex items-center gap-1 bg-transparent font-medium">
-                                    <PlusCircle size={14} /> New
-                                </Link>
-                            }
-                        />
+                {/* Tabbed Interface */}
+                <div>
+                    {/* Tab Nav & Action */}
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center">
+                            <button
+                                onClick={() => setActiveTab('active')}
+                                className={`text-2xl font-bold transition-colors ${activeTab === 'active' ? 'text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
+                            >
+                                Active Polls
+                            </button>
+
+                            {/* Divider matching deselected color */}
+                            <div className="h-8 w-px bg-gray-400 mx-6"></div>
+
+                            <button
+                                onClick={() => setActiveTab('archived')}
+                                className={`text-2xl font-bold transition-colors ${activeTab === 'archived' ? 'text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
+                            >
+                                Archived Polls
+                            </button>
+                        </div>
+                        <Link
+                            to="/dashboard/create"
+                            id="create-btn"
+                            className="flex items-center gap-2 border border-primary text-primary px-4 py-2 rounded-lg text-sm font-bold hover:bg-gray-50 transition transform active:scale-95"
+                        >
+                            <PlusCircle size={20} /> New Poll
+                        </Link>
                     </div>
-                    <div id="archived-polls">
-                        <Section title="Archived Polls" polls={archivedPolls} onClose={confirmReopen} onDelete={confirmDelete} onCopy={handleCopy} copiedId={copiedId} />
+
+                    {/* Tab Content */}
+                    <div className="min-h-[400px]">
+                        {activeTab === 'active' ? (
+                            <div id="active-polls">
+                                <Section
+                                    title="Active Polls"
+                                    polls={activePolls}
+                                    onClose={confirmClose}
+                                    onDelete={confirmDelete}
+                                    active
+                                    onCopy={handleCopy}
+                                    copiedId={copiedId}
+                                // Removed headerAction as it is now global
+                                />
+                            </div>
+                        ) : (
+                            <div id="archived-polls">
+                                <Section
+                                    title="Archived Polls"
+                                    polls={archivedPolls}
+                                    onClose={confirmReopen}
+                                    onDelete={confirmDelete}
+                                    onCopy={handleCopy}
+                                    copiedId={copiedId}
+                                />
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
@@ -162,36 +202,30 @@ function AdminDashboard() {
 }
 
 function Section({ title, polls, onClose, onDelete, active, onCopy, copiedId, headerAction }) {
-    const headerTitle = (
-        <div className="flex items-center gap-4 mb-4">
-            <h2 className="text-xl font-semibold text-gray-700">{title}</h2>
-            {headerAction && headerAction}
-        </div>
-    );
+    // If we have specific header actions, show the header row. Otherwise, if title is hidden by tabs, we might skip it.
+    // However, keeping the title "Active Polls" inside the tab content is redundant.
+    // I will remove the Header Title rendering from Section since the Tabs serve that purpose now.
 
     if (polls.length === 0) return (
-        <div>
-            {headerTitle}
-            <div className="text-gray-400 italic p-6 bg-white rounded-lg border border-gray-200">No {title.toLowerCase()} found.</div>
-        </div>
+        <div className="text-gray-400 italic p-6 bg-white rounded-lg border border-gray-200">No polls found in this section.</div>
     );
 
     return (
         <section>
-            {headerTitle}
+            {/* Removed redundant headerTitle since we have tabs now */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-400 overflow-hidden">
                 <table className="w-full text-left border-collapse">
                     <thead>
-                        <tr className="bg-gray-200 border-b border-gray-300 text-gray-800 text-sm font-bold uppercase tracking-wider">
+                        <tr className="bg-secondary border-b border-gray-300 text-secondary-text text-xs font-bold uppercase tracking-wider">
                             <th className="px-6 py-4">Title</th>
                             <th className="px-6 py-4">Start Date</th>
                             <th className="px-6 py-4">Close Date</th>
                             <th className="px-6 py-4 text-right">Actions</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100">
+                    <tbody className="divide-y divide-gray-200">
                         {polls.map(poll => (
-                            <tr key={poll.id} className="hover:bg-gray-50 transition-colors">
+                            <tr key={poll.id} className="hover:bg-secondary-hover transition-colors">
                                 <td className="px-6 py-4">
                                     <div className="flex items-center gap-1">
                                         <span className="font-medium text-gray-900 text-lg">{poll.title}</span>

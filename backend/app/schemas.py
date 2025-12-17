@@ -53,6 +53,13 @@ class PollBase(BaseModel):
 
 class PollCreate(PollBase):
     closes_at: Optional[datetime] = None
+    color_palette: Optional[str] = "lehigh_soft"
+
+class PollUpdate(BaseModel):
+    title: Optional[str] = None
+    closes_at: Optional[datetime] = None
+    color_palette: Optional[str] = None
+    is_active: Optional[bool] = None
 
 class Poll(PollBase):
     id: int
@@ -61,6 +68,7 @@ class Poll(PollBase):
     created_at: datetime
     closed_at: Optional[datetime]
     closes_at: Optional[datetime]
+    color_palette: str
     owner_id: int
     questions: List[Question] = []
     class Config:

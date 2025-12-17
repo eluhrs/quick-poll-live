@@ -6,6 +6,9 @@ import EditPoll from './components/EditPoll';
 import LandingPage from './components/LandingPage';
 import PollDisplay from './components/PollDisplay';
 import VotingView from './components/VotingView';
+import Scratchpad from './components/Scratchpad';
+import ScratchpadButtons from './components/ScratchpadButtons';
+import ScratchpadTabset from './components/ScratchpadTabset';
 
 function PrivateRoute({ children }) {
     const token = localStorage.getItem('token');
@@ -26,11 +29,7 @@ function App() {
                         <CreatePoll />
                     </PrivateRoute>
                 } />
-                <Route path="/dashboard/create" element={
-                    <PrivateRoute>
-                        <CreatePoll />
-                    </PrivateRoute>
-                } />
+
                 <Route path="/:slug/edit" element={
                     <PrivateRoute>
                         <EditPoll />
@@ -41,6 +40,14 @@ function App() {
                 <Route path="/:slug/view" element={<PollDisplay />} />
                 <Route path="/poll/:slug" element={<VotingView />} />
                 <Route path="/" element={<LandingPage />} />
+
+                {/* Dev Tools */}
+                <Route path="/scratchpad" element={<Scratchpad />} />
+                <Route path="/scratchpad/buttons" element={<ScratchpadButtons />} />
+                <Route path="/scratchpad/tabset" element={<ScratchpadTabset />} />
+
+                {/* 404 - Redirect to Home */}
+                <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
         </Router>
     );

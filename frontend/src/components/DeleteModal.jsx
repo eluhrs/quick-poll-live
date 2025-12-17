@@ -32,18 +32,21 @@ function DeleteModal({
                         {message}
                     </p>
 
-                    <div className="flex gap-3 justify-end">
+                    <div className="p-6 pt-0 flex justify-end gap-3">
                         <button
                             onClick={onClose}
-                            className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition"
+                            className="px-4 py-2 rounded-lg bg-secondary text-secondary-text border border-primary font-bold hover:bg-secondary-hover transition"
                         >
                             Cancel
                         </button>
                         <button
-                            onClick={onConfirm}
-                            className={`px-4 py-2 text-white rounded-lg font-medium transition shadow-sm ${isDanger ? 'bg-red-600 hover:bg-red-700' : 'bg-amber-600 hover:bg-amber-700'}`}
+                            onClick={() => {
+                                onConfirm();
+                                onClose();
+                            }}
+                            className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-800 transition shadow-sm font-bold"
                         >
-                            {confirmText}
+                            Confirm
                         </button>
                     </div>
                 </div>

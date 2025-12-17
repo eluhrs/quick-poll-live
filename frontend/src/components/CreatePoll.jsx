@@ -1,30 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
-import { Plus, Trash, ArrowLeft } from 'lucide-react';
+import { Plus, Trash, ArrowLeft, Calendar, ChevronRight } from 'lucide-react';
+import Header from './Header';
+
+import { PALETTES } from '../constants/palettes';
 
 function CreatePoll() {
     const [title, setTitle] = useState('');
     const [closesAt, setClosesAt] = useState('');
+    const [palette, setPalette] = useState('lehigh_soft');
     const navigate = useNavigate();
+    const dateInputRef = useRef(null);
 
-    // For MVP, we might create the poll first, then redirect to a "Edit Poll" page to add questions?
-    // Or do it all in one go. The backend API creates a poll with title, then adds questions separately.
-    // I'll implement a 2-step process for robustness:
-    // 1. Create Poll (get slug)
-    // 2. Add Questions to that slug.
-
-    // Actually, let's keep it simple. User enters title, clicks "Next", poll is created, then they add questions.
+    const palettes = PALETTES;
 
     const handleCreate = async (e) => {
         e.preventDefault();
         if (!title) return;
         try {
-            // Convert local time to UTC or ISO string.
-            // datetime-local returns YYYY-MM-DDTHH:mm. 
-            // We can send it directly or ensuring it matches backend expectation.
-            // Backend expects ISO-8601.
-            const payload = { title };
+            const payload = {
+                title,
+                color_palette: palette
+            };
             if (closesAt) {
                 payload.closes_at = new Date(closesAt).toISOString();
             }
@@ -38,37 +36,107 @@ function CreatePoll() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center p-4">
-            <div className="bg-white p-8 rounded-xl shadow-md w-full max-w-md">
-                <h1 className="text-2xl font-bold mb-6">Create New Poll</h1>
-                <form onSubmit={handleCreate}>
-                    <div className="mb-6">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Poll Title</label>
-                        <input
-                            type="text"
-                            value={title}
-                            onChange={e => setTitle(e.target.value)}
-                            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                            placeholder="e.g., Library User Survey"
-                            autoFocus
-                        />
-                    </div>
+        <div className="min-h-screen p-8 bg-gray-50">
+            <div className="max-w-7xl mx-auto">
+                <Header />
 
-                    <div className="mb-6">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Auto-Close Date (Optional)</label>
-                        <input
-                            type="datetime-local"
-                            value={closesAt}
-                            onChange={e => setClosesAt(e.target.value)}
-                            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none mb-1"
-                        />
-                        <p className="text-xs text-gray-500">The poll will automatically move to 'Archived' after this time.</p>
+                <div className="max-w-2xl mx-auto mt-12">
+                    <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+                        {/* Card Header */}
+                        <div className="bg-secondary px-8 py-6 border-b border-gray-300">
+                            <h1 className="text-2xl font-bold text-gray-900">Create New Poll</h1>
+                            <p className="text-gray-600 mt-1">Set up your poll details and appearance.</p>
+                        </div>
+
+                        <form onSubmit={handleCreate} className="p-8 space-y-8">
+                            {/* Poll Title */}
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Poll Title</label>
+                                <input
+                                    type="text"
+                                    value={title}
+                                    onChange={e => setTitle(e.target.value)}
+                                    className="w-full px-4 py-3 text-lg border-2 border-gray-200 rounded-xl focus:border-primary focus:ring-0 outline-none transition-colors"
+                                    placeholder="e.g., Quarterly Team Survey"
+                                    autoFocus
+                                />
+                            </div>
+
+                            {/* Schedule Date */}
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Auto-Close Schedule</label>
+                                <div className="flex items-center gap-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => dateInputRef.current.showPicker()}
+                                        className={`flex items-center gap-3 px-5 py-3 rounded-xl border-2 transition-all font-bold ${closesAt ? 'border-primary text-primary bg-secondary/30' : 'border-gray-200 text-gray-500 hover:border-gray-300 hover:bg-gray-50'}`}
+                                    >
+                                        <Calendar size={20} />
+                                        <span>{closesAt ? new Date(closesAt).toLocaleString() : 'Schedule Close Date'}</span>
+                                    </button>
+                                    {closesAt && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setClosesAt('')}
+                                            className="text-red-400 hover:text-red-600 p-2"
+                                            title="Clear Date"
+                                        >
+                                            <Trash size={18} />
+                                        </button>
+                                    )}
+                                </div>
+                                <input
+                                    type="datetime-local"
+                                    ref={dateInputRef}
+                                    value={closesAt}
+                                    onChange={e => setClosesAt(e.target.value)}
+                                    className="sr-only" // Hidden visually but accessible
+                                />
+                                <p className="text-xs text-gray-400 mt-2 ml-1">Optional. Poll will automatically archive after this date.</p>
+                            </div>
+
+                            {/* Color Palette */}
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 mb-3 uppercase tracking-wide">Chart Color Theme</label>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                    {palettes.map(p => (
+                                        <button
+                                            key={p.id}
+                                            type="button"
+                                            onClick={() => setPalette(p.id)}
+                                            className={`relative p-3 rounded-xl border-2 text-left transition-all ${palette === p.id ? 'border-primary bg-secondary/30 ring-1 ring-primary' : 'border-gray-100 hover:border-gray-300'}`}
+                                        >
+                                            <div className="flex gap-1 mb-2">
+                                                {p.colors.map(c => (
+                                                    <div key={c} className="w-4 h-4 rounded-full" style={{ backgroundColor: c }}></div>
+                                                ))}
+                                            </div>
+                                            <span className={`text-sm font-bold ${palette === p.id ? 'text-primary' : 'text-gray-500'}`}>{p.name}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Actions */}
+                            <div className="flex justify-end gap-4 pt-4 border-t border-gray-100">
+                                <button
+                                    type="button"
+                                    onClick={() => navigate('/dashboard')}
+                                    className="px-6 py-3 rounded-xl bg-secondary text-secondary-text border border-primary font-bold hover:bg-secondary-hover transition"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={!title}
+                                    className={`px-8 py-3 rounded-xl bg-primary text-white font-bold text-lg shadow-lg hover:bg-primary-hover hover:shadow-xl transition transform active:scale-95 flex items-center gap-2 ${!title ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                >
+                                    Create Poll <ChevronRight size={20} />
+                                </button>
+                            </div>
+                        </form>
                     </div>
-                    <div className="flex justify-between">
-                        <button type="button" onClick={() => navigate('/dashboard')} className="text-gray-500 hover:text-gray-700">Cancel</button>
-                        <button type="submit" className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">Next</button>
-                    </div>
-                </form>
+                </div>
             </div>
         </div>
     );
