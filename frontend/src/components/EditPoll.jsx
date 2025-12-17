@@ -19,6 +19,7 @@ function EditPoll() {
     const [editingQuestionId, setEditingQuestionId] = useState(null);
     const [deleteQuestionId, setDeleteQuestionId] = useState(null);
     const [draggedIndex, setDraggedIndex] = useState(null);
+    const [dragOverIndex, setDragOverIndex] = useState(null);
     const [isAddingQuestion, setIsAddingQuestion] = useState(false);
 
     // Settings State
@@ -84,10 +85,10 @@ function EditPoll() {
             };
             await api.put(`/polls/${slug}`, payload);
             fetchPoll(); // Refresh to get updated data
-            // Show success toast? For now just button state or alert
         } catch (err) {
             console.error(err);
-            alert("Failed to update settings");
+            const msg = err.response?.data?.detail || err.message || "Failed to update settings";
+            alert(`Error saving: ${msg}`);
         } finally {
             setIsSavingSettings(false);
         }
@@ -136,12 +137,23 @@ function EditPoll() {
         e.dataTransfer.effectAllowed = "move";
     };
 
-    const handleDragOver = (e) => {
+    const handleDragOver = (e, index) => {
         e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+        if (draggedIndex !== null && draggedIndex !== index && dragOverIndex !== index) {
+            setDragOverIndex(index);
+        }
+    };
+
+    const handleDragEnd = () => {
+        setDraggedIndex(null);
+        setDragOverIndex(null);
     };
 
     const handleDrop = async (e, dropIndex) => {
         e.preventDefault();
+        setDragOverIndex(null); // Reset visual immediately
+
         if (draggedIndex === null || draggedIndex === undefined) return;
         if (draggedIndex === dropIndex) return;
 
@@ -187,34 +199,45 @@ function EditPoll() {
                 )}
                 <Header />
 
-                {/* Poll Title & Preview Action */}
-                <div className="flex items-center gap-4 mb-4">
+                {/* Poll Title */}
+                <div className="flex items-center justify-between mb-4">
                     <h1 className="text-3xl font-bold text-gray-900">{poll.title}</h1>
                 </div>
 
-                {/* Tab Navigation */}
-                <div className="flex items-center gap-8 mb-6 border-b border-gray-300">
-                    <button
-                        onClick={() => setActiveTab('questions')}
-                        className={`pb-3 text-lg font-bold transition-all relative ${activeTab === 'questions' ? 'text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
-                    >
-                        Questions
-                        {activeTab === 'questions' && <span className="absolute bottom-[-1px] left-0 w-full h-1 bg-primary rounded-t-md"></span>}
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('settings')}
-                        className={`pb-3 text-lg font-bold transition-all relative ${activeTab === 'settings' ? 'text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
-                    >
-                        Settings
-                        {activeTab === 'settings' && <span className="absolute bottom-[-1px] left-0 w-full h-1 bg-primary rounded-t-md"></span>}
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('preview')}
-                        className={`pb-3 text-lg font-bold transition-all relative ${activeTab === 'preview' ? 'text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
-                    >
-                        Preview
-                        {activeTab === 'preview' && <span className="absolute bottom-[-1px] left-0 w-full h-1 bg-primary rounded-t-md"></span>}
-                    </button>
+                {/* Tab Navigation & Action */}
+                <div className="flex items-center justify-between mb-6 border-b border-gray-300">
+                    <div className="flex items-center gap-8">
+                        <button
+                            onClick={() => setActiveTab('questions')}
+                            className={`pb-3 text-lg font-bold transition-all relative ${activeTab === 'questions' ? 'text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
+                        >
+                            Questions
+                            {activeTab === 'questions' && <span className="absolute bottom-[-1px] left-0 w-full h-1 bg-primary rounded-t-md"></span>}
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('settings')}
+                            className={`pb-3 text-lg font-bold transition-all relative ${activeTab === 'settings' ? 'text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
+                        >
+                            Settings
+                            {activeTab === 'settings' && <span className="absolute bottom-[-1px] left-0 w-full h-1 bg-primary rounded-t-md"></span>}
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('preview')}
+                            className={`pb-3 text-lg font-bold transition-all relative ${activeTab === 'preview' ? 'text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
+                        >
+                            Preview
+                            {activeTab === 'preview' && <span className="absolute bottom-[-1px] left-0 w-full h-1 bg-primary rounded-t-md"></span>}
+                        </button>
+                    </div>
+
+                    {activeTab === 'questions' && !isAddingQuestion && (
+                        <button
+                            onClick={() => setIsAddingQuestion(true)}
+                            className="bg-gray-50 hover:bg-secondary-hover text-gray-500 hover:text-primary border-2 border-dashed border-gray-300 hover:border-primary text-sm font-bold py-2 px-4 rounded-lg transition-colors active:scale-95 flex items-center gap-2 mb-2"
+                        >
+                            <Plus size={16} /> New Question
+                        </button>
+                    )}
                 </div>
 
                 {activeTab === 'questions' ? (
@@ -229,17 +252,21 @@ function EditPoll() {
                             </div>
 
                             {poll.questions && poll.questions.length > 0 ? (
-                                <div className="divide-y divide-gray-200">
+                                <div className="">
                                     {poll.questions.map((q, i) => (
                                         <div key={q.id} className={`border-b border-gray-200 last:border-0 transition-all duration-200 ${editingQuestionId === q.id
                                             ? 'bg-gray-50 border-l-4 border-l-primary shadow-md my-4 rounded-lg border border-gray-300 transform scale-[1.01]'
                                             : 'bg-white hover:bg-gray-50'
+                                            } ${dragOverIndex === i && draggedIndex !== i
+                                                ? (draggedIndex < i ? '!border-b-4 !border-b-blue-600' : '!border-t-4 !border-t-blue-600')
+                                                : ''
                                             }`}>
                                             <div
                                                 className="grid grid-cols-12 gap-4 px-6 py-4 items-center hover:bg-secondary-hover transition-colors"
                                                 draggable
                                                 onDragStart={(e) => handleDragStart(e, i)}
-                                                onDragOver={handleDragOver}
+                                                onDragOver={(e) => handleDragOver(e, i)}
+                                                onDragEnd={handleDragEnd}
                                                 onDrop={(e) => handleDrop(e, i)}
                                             >
                                                 <div className="col-span-1 text-gray-300 cursor-move hover:text-gray-500 flex justify-center">
@@ -247,7 +274,9 @@ function EditPoll() {
                                                 </div>
                                                 <div className="col-span-5">
                                                     <h3 className="font-bold text-gray-800 text-base break-words leading-tight">{q.text}</h3>
-                                                    <div className="text-xs text-gray-400 mt-0.5">{q.options.length} Options</div>
+                                                    <div className="text-xs text-gray-400 mt-0.5">
+                                                        {q.question_type === 'open_ended' ? '1 Option' : `${q.options.length} Options`}
+                                                    </div>
                                                 </div>
                                                 <div className="col-span-2">
                                                     <span className="bg-gray-100 text-gray-600 border border-gray-200 px-2 py-1 rounded text-xs font-medium capitalize block w-fit truncate max-w-full">
@@ -320,7 +349,7 @@ function EditPoll() {
                                     className="w-1/3 mx-auto mt-4 flex items-center justify-center gap-2 p-4 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-primary hover:text-primary transition-colors group bg-gray-50 hover:bg-secondary-hover"
                                 >
                                     <Plus className="group-hover:scale-110 transition-transform" />
-                                    <span className="font-bold">Add New Question</span>
+                                    <span className="font-bold">New Question</span>
                                 </button>
                             ) : (
                                 <div className="transform scale-[1.01] transition-transform duration-200">
@@ -499,7 +528,12 @@ function EditPoll() {
                         <div className="bg-white rounded-xl shadow-lg border-2 border-gray-900 border-opacity-10 overflow-hidden">
                             {/* Preview Container: 1px border is handled by border-opacity-10 combined with standard border width or specific class. User asked for 1px rectangle. standard border is 1px. */}
                             <div className="border border-gray-200 rounded-lg p-2 m-4 bg-gray-50/50">
-                                <PollPlayer poll={poll} activePalette={settingsForm.color_palette} isPreview={true} />
+                                <PollPlayer
+                                    poll={poll}
+                                    activePalette={settingsForm.color_palette}
+                                    enableTitlePage={settingsForm.enable_title_page}
+                                    isPreview={true}
+                                />
                             </div>
                             <div className="p-4 bg-gray-50 text-center text-sm text-gray-400">
                                 This is a preview of how your poll will appear to participants.

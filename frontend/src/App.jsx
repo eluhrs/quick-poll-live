@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import AdminDashboard from './components/AdminDashboard';
 import CreatePoll from './components/CreatePoll';
 import EditPoll from './components/EditPoll';
@@ -13,6 +13,11 @@ import ScratchpadTabset from './components/ScratchpadTabset';
 function PrivateRoute({ children }) {
     const token = localStorage.getItem('token');
     return token ? children : <Navigate to="/" />;
+}
+
+function RedirectToVote() {
+    const { slug } = useParams();
+    return <Navigate to={`/${slug}/vote`} replace />;
 }
 
 function App() {
@@ -38,7 +43,9 @@ function App() {
 
                 {/* Public Routes */}
                 <Route path="/:slug/view" element={<PollDisplay />} />
-                <Route path="/poll/:slug" element={<VotingView />} />
+                <Route path="/:slug/vote" element={<VotingView />} />
+                <Route path="/poll/:slug" element={<RedirectToVote />} />
+                <Route path="/:slug" element={<RedirectToVote />} />
                 <Route path="/" element={<LandingPage />} />
 
                 {/* Dev Tools */}

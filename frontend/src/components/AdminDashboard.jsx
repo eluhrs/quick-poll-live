@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../api';
-import { PlusCircle, ExternalLink, Archive, PlayCircle, BarChart2, Edit, Trash2, RotateCcw, LogOut, Eye } from 'lucide-react';
+import { PlusCircle, Archive, Share2, Check, Edit, Trash2, RotateCcw } from 'lucide-react';
 import DeleteModal from './DeleteModal';
 import Header from './Header';
+import { driver } from 'driver.js';
+import 'driver.js/dist/driver.css';
 
 function AdminDashboard() {
     const [polls, setPolls] = useState([]);
@@ -71,7 +73,8 @@ function AdminDashboard() {
     };
 
     const handleCopy = (id, slug) => {
-        navigator.clipboard.writeText(slug);
+        const url = `${window.location.origin}/${slug}/vote`;
+        navigator.clipboard.writeText(url);
         setCopiedId(id);
         setTimeout(() => setCopiedId(null), 2000);
     };
@@ -127,36 +130,35 @@ function AdminDashboard() {
                 {/* Tabbed Interface */}
                 <div>
                     {/* Tab Nav & Action */}
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center">
+                    <div className="flex items-center justify-between mb-6 border-b border-gray-300">
+                        <div className="flex items-center gap-8">
                             <button
                                 onClick={() => setActiveTab('active')}
-                                className={`text-2xl font-bold transition-colors ${activeTab === 'active' ? 'text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
+                                className={`pb-3 text-lg font-bold transition-all relative ${activeTab === 'active' ? 'text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
                             >
                                 Active Polls
+                                {activeTab === 'active' && <span className="absolute bottom-[-1px] left-0 w-full h-1 bg-primary rounded-t-md"></span>}
                             </button>
-
-                            {/* Divider matching deselected color */}
-                            <div className="h-8 w-px bg-gray-400 mx-6"></div>
-
                             <button
                                 onClick={() => setActiveTab('archived')}
-                                className={`text-2xl font-bold transition-colors ${activeTab === 'archived' ? 'text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
+                                className={`pb-3 text-lg font-bold transition-all relative ${activeTab === 'archived' ? 'text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
                             >
                                 Archived Polls
+                                {activeTab === 'archived' && <span className="absolute bottom-[-1px] left-0 w-full h-1 bg-primary rounded-t-md"></span>}
                             </button>
                         </div>
+
                         <Link
                             to="/dashboard/create"
                             id="create-btn"
-                            className="flex items-center gap-2 border border-primary text-primary px-4 py-2 rounded-lg text-sm font-bold hover:bg-gray-50 transition transform active:scale-95"
+                            className={`bg-gray-50 hover:bg-secondary-hover text-gray-500 hover:text-primary border-2 border-dashed border-gray-300 hover:border-primary text-sm font-bold py-2 px-4 rounded-lg transition-colors active:scale-95 flex items-center gap-2 mb-2 ${activeTab === 'active' ? '' : 'invisible pointer-events-none'}`}
                         >
-                            <PlusCircle size={20} /> New Poll
+                            <PlusCircle size={16} /> New Poll
                         </Link>
                     </div>
 
                     {/* Tab Content */}
-                    <div className="min-h-[400px]">
+                    <div>
                         {activeTab === 'active' ? (
                             <div id="active-polls">
                                 <Section
@@ -167,7 +169,6 @@ function AdminDashboard() {
                                     active
                                     onCopy={handleCopy}
                                     copiedId={copiedId}
-                                // Removed headerAction as it is now global
                                 />
                             </div>
                         ) : (
@@ -183,6 +184,16 @@ function AdminDashboard() {
                             </div>
                         )}
                     </div>
+
+                    {activeTab === 'active' && (
+                        <Link
+                            to="/dashboard/create"
+                            className="w-1/3 mx-auto mt-4 flex items-center justify-center gap-2 p-4 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-primary hover:text-primary transition-colors group bg-gray-50 hover:bg-secondary-hover"
+                        >
+                            <PlusCircle className="group-hover:scale-110 transition-transform" />
+                            <span className="font-bold">New Poll</span>
+                        </Link>
+                    )}
                 </div>
             </div>
 
@@ -199,18 +210,13 @@ function AdminDashboard() {
     );
 }
 
-function Section({ title, polls, onClose, onDelete, active, onCopy, copiedId, headerAction }) {
-    // If we have specific header actions, show the header row. Otherwise, if title is hidden by tabs, we might skip it.
-    // However, keeping the title "Active Polls" inside the tab content is redundant.
-    // I will remove the Header Title rendering from Section since the Tabs serve that purpose now.
-
+function Section({ title, polls, onClose, onDelete, active, onCopy, copiedId }) {
     if (polls.length === 0) return (
         <div className="text-gray-400 italic p-6 bg-white rounded-lg border border-gray-200">No polls found in this section.</div>
     );
 
     return (
         <section>
-            {/* Removed redundant headerTitle since we have tabs now */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-400 overflow-hidden">
                 <table className="w-full text-left border-collapse">
                     <thead>
@@ -225,48 +231,46 @@ function Section({ title, polls, onClose, onDelete, active, onCopy, copiedId, he
                         {polls.map(poll => (
                             <tr key={poll.id} className="hover:bg-secondary-hover transition-colors">
                                 <td className="px-6 py-4">
-                                    <div className="flex items-center gap-1">
-                                        <span className="font-medium text-gray-900 text-lg">{poll.title}</span>
-                                        <button
-                                            onClick={() => onCopy(poll.id, poll.slug)}
-                                            className={`text-sm font-mono pl-1 py-0.5 transition-all cursor-pointer w-24 text-left ${copiedId === poll.id
-                                                ? 'text-gray-500'
-                                                : 'text-gray-500 hover:text-blue-600'
-                                                }`}
-                                            title="Click to copy code"
-                                        >
-                                            {copiedId === poll.id ? 'Copied!' : `(${poll.slug})`}
-                                        </button>
-                                    </div>
+                                    <Link
+                                        to={`/${poll.slug}/edit`}
+                                        className="font-medium text-gray-900 text-lg hover:underline decoration-gray-400 underline-offset-4"
+                                    >
+                                        {poll.title}
+                                    </Link>
+                                    <div className="text-gray-500 text-sm mt-1">{poll.questions.length} Questions</div>
                                 </td>
                                 <td className="px-6 py-4 text-gray-500 text-sm">
                                     {new Date(poll.created_at).toLocaleDateString()}
                                 </td>
                                 <td className="px-6 py-4 text-gray-500 text-sm">
-                                    {poll.closes_at ? new Date(poll.closes_at).toLocaleString() : (poll.closed_at ? new Date(poll.closed_at).toLocaleDateString() : '—')}
+                                    {poll.closes_at ? new Date(poll.closes_at).toLocaleString() : (poll.closed_at ? new Date(poll.closed_at).toLocaleDateString() : <span className="text-2xl leading-none">&infin;</span>)}
                                 </td>
                                 <td className="px-6 py-4 text-right">
-                                    <div className="flex gap-2 justify-end">
-                                        <Link to={`/${poll.slug}/view`} target="_blank" className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded" title="Present Mode">
-                                            <Eye size={18} />
+                                    <div className="flex gap-4 justify-end items-center">
+                                        <Link to={`/${poll.slug}/edit`} className="text-gray-400 hover:text-indigo-600 transition-colors" title="Edit Poll">
+                                            <Edit size={20} />
                                         </Link>
 
-                                        <Link to={`/${poll.slug}/edit`} className="p-2 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded" title="Edit Poll">
-                                            <Edit size={18} />
-                                        </Link>
+                                        <button
+                                            onClick={() => onCopy(poll.id, poll.slug)}
+                                            className={`transition-colors ${copiedId === poll.id ? 'text-gray-400' : 'text-gray-400 hover:text-blue-600'}`}
+                                            title="Share Poll"
+                                        >
+                                            {copiedId === poll.id ? <Check size={20} /> : <Share2 size={20} />}
+                                        </button>
 
                                         {active ? (
-                                            <button onClick={() => onClose(poll.slug)} className="p-2 text-gray-500 hover:text-amber-600 hover:bg-amber-50 rounded" title="Close Poll">
-                                                <Archive size={18} />
+                                            <button onClick={() => onClose(poll.slug)} className="text-gray-400 hover:text-amber-600 transition-colors" title="Close Poll">
+                                                <Archive size={20} />
                                             </button>
                                         ) : (
-                                            <button onClick={() => onClose(poll.slug)} className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded" title="Reopen Poll">
-                                                <RotateCcw size={18} />
+                                            <button onClick={() => onClose(poll.slug)} className="text-gray-400 hover:text-green-600 transition-colors" title="Reopen Poll">
+                                                <RotateCcw size={20} />
                                             </button>
                                         )}
 
-                                        <button onClick={() => onDelete(poll.slug)} className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded" title="Delete Poll">
-                                            <Trash2 size={18} />
+                                        <button onClick={() => onDelete(poll.slug)} className="text-gray-400 hover:text-red-600 transition-colors" title="Delete Poll">
+                                            <Trash2 size={20} />
                                         </button>
                                     </div>
                                 </td>

@@ -72,6 +72,7 @@ class Poll(BaseModel):
     closes_at: Optional[datetime]
     color_palette: str
     slide_duration: int
+    enable_title_page: bool
     is_active: bool
     questions: List[Question] = []
     class Config:
