@@ -7,6 +7,7 @@ import DeleteModal from './DeleteModal';
 import Header from './Header';
 import { PALETTES } from '../constants/palettes';
 import PollPlayer from './PollPlayer';
+import ColorGeneratorModal from './ColorGeneratorModal';
 
 function EditPoll() {
     const { slug } = useParams();
@@ -23,6 +24,8 @@ function EditPoll() {
     // Settings State
     const [settingsForm, setSettingsForm] = useState({ title: '', closes_at: '', color_palette: '', slide_duration: 3 });
     const [isSavingSettings, setIsSavingSettings] = useState(false);
+    const [showColorModal, setShowColorModal] = useState(false);
+    const [customColors, setCustomColors] = useState(null);
     const settingsDateRef = useRef(null);
 
     useEffect(() => {
@@ -34,15 +37,37 @@ function EditPoll() {
             const res = await api.get(`/polls/${slug}`);
             const sortedQuestions = res.data.questions.sort((a, b) => (a.order || 0) - (b.order || 0));
             setPoll({ ...res.data, questions: sortedQuestions });
+
+            // Determine if palette is a preset or custom
+            let initialPalette = res.data.color_palette || 'lehigh_soft';
+            let initialCustom = null;
+            const isPreset = PALETTES.some(p => p.id === initialPalette);
+
+            if (!isPreset && initialPalette.startsWith('[')) {
+                try {
+                    initialCustom = JSON.parse(initialPalette);
+                } catch (e) { console.error("Failed to parse custom palette", e); }
+            }
+
             setSettingsForm({
                 title: res.data.title,
-                closes_at: res.data.closes_at ? res.data.closes_at.slice(0, 16) : '', // Format for datetime-local
-                color_palette: res.data.color_palette || 'lehigh_soft',
+                closes_at: res.data.closes_at ? res.data.closes_at.slice(0, 16) : '',
+                color_palette: initialPalette,
                 slide_duration: res.data.slide_duration || 3
             });
+            if (initialCustom) {
+                setCustomColors(initialCustom);
+            }
         } catch (err) {
             console.error(err);
         }
+    };
+
+    const handleApplyCustomColors = (colors) => {
+        const jsonColors = JSON.stringify(colors);
+        setCustomColors(colors);
+        setSettingsForm({ ...settingsForm, color_palette: jsonColors });
+        setShowColorModal(false);
     };
 
     const handleSaveSettings = async (e) => {
@@ -149,6 +174,13 @@ function EditPoll() {
             />
 
             <div className="max-w-7xl mx-auto">
+                {showColorModal && (
+                    <ColorGeneratorModal
+                        onClose={() => setShowColorModal(false)}
+                        onApply={handleApplyCustomColors}
+                        initialColors={customColors}
+                    />
+                )}
                 <Header />
 
                 {/* Poll Title & Preview Action */}
