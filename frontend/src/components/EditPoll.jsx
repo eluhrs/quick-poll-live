@@ -359,8 +359,9 @@ function EditPoll() {
                                 {/* Date & Duration */}
                                 <div className="flex gap-4">
                                     {/* Date Input */}
+                                    {/* Date Input */}
                                     <div className="flex-grow">
-                                        <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Auto-Close Date</label>
+                                        <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Close Date</label>
                                         <div className="flex items-center gap-4">
                                             <button
                                                 type="button"
@@ -403,20 +404,22 @@ function EditPoll() {
                                         />
                                     </div>
 
-                                    {/* Title Page Checkbox */}
-                                    <div className="flex items-center">
-                                        <label className="flex items-center gap-3 cursor-pointer p-3 rounded-xl hover:bg-gray-50 transition border border-transparent hover:border-gray-100">
-                                            <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center transition-colors ${settingsForm.enable_title_page ? 'bg-primary border-primary' : 'border-gray-300'}`}>
-                                                {settingsForm.enable_title_page && <Check size={16} className="text-white" />}
-                                            </div>
-                                            <input
-                                                type="checkbox"
-                                                className="hidden"
-                                                checked={settingsForm.enable_title_page}
-                                                onChange={(e) => setSettingsForm({ ...settingsForm, enable_title_page: e.target.checked })}
-                                            />
-                                            <span className="font-bold text-gray-700 select-none">Enable Title Page</span>
-                                        </label>
+                                    {/* Show Title Page Toggle */}
+                                    <div className="flex flex-col">
+                                        <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Show Title Page</label>
+                                        <div className="flex items-center gap-3 h-[52px]"> {/* Height matches inputs */}
+                                            <span className={`text-sm font-bold ${!settingsForm.enable_title_page ? 'text-gray-900' : 'text-gray-400'}`}>No</span>
+                                            <button
+                                                type="button"
+                                                onClick={() => setSettingsForm({ ...settingsForm, enable_title_page: !settingsForm.enable_title_page })}
+                                                className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${settingsForm.enable_title_page ? 'bg-primary' : 'bg-gray-200'}`}
+                                            >
+                                                <span
+                                                    className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${settingsForm.enable_title_page ? 'translate-x-7' : 'translate-x-1'}`}
+                                                />
+                                            </button>
+                                            <span className={`text-sm font-bold ${settingsForm.enable_title_page ? 'text-gray-900' : 'text-gray-400'}`}>Yes</span>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -433,7 +436,7 @@ function EditPoll() {
                                                     setSettingsForm({ ...settingsForm, color_palette: p.id });
                                                     setCustomColors(null); // Deselect custom visual state if switching to preset
                                                 }}
-                                                className={`relative p-3 rounded-xl border-2 text-left transition-all ${settingsForm.color_palette === p.id ? 'border-primary bg-secondary/30 ring-1 ring-primary' : 'border-gray-100 hover:border-gray-300'}`}
+                                                className={`relative p-3 rounded-xl border-2 text-left transition-all ${settingsForm.color_palette === p.id ? 'border-primary bg-secondary/30 ring-1 ring-primary' : 'border-gray-200 hover:border-gray-300'}`}
                                             >
                                                 <div className="flex gap-1 mb-2 h-6">
                                                     {p.colors.map(c => (
@@ -459,7 +462,7 @@ function EditPoll() {
                                                     }
                                                 }
                                             }}
-                                            className={`relative p-3 rounded-xl border-2 text-left transition-all group ${isCustomSelected ? 'border-primary bg-secondary/30 ring-1 ring-primary' : 'border-gray-100 hover:border-gray-300 border-dashed'}`}
+                                            className={`relative p-3 rounded-xl border-2 text-left transition-all group ${isCustomSelected ? 'border-primary bg-secondary/30 ring-1 ring-primary' : 'border-gray-200 hover:border-gray-300 border-dashed'}`}
                                         >
                                             <div className="flex gap-1 mb-2 h-6 items-center justify-center bg-gray-50 rounded-sm overflow-hidden">
                                                 {customColors ? (
