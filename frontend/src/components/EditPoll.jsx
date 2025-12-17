@@ -135,7 +135,7 @@ function EditPoll() {
         }
     };
 
-    if (!poll) return <div className="p-8 text-center text-gray-500">Loading poll data...</div>;
+    const isCustomSelected = customColors && settingsForm.color_palette === JSON.stringify(customColors);
 
     return (
         <div className="min-h-screen p-8 pb-32 bg-gray-50">

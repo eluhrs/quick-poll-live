@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, RadialBarChart, RadialBar } from 'recharts';
 import { ChevronLeft, ChevronRight, Play, Pause } from 'lucide-react';
-import ReactWordcloud from 'react-wordcloud';
 import { PALETTES } from '../constants/palettes';
 
 function PollPlayer({ poll, activePalette, isPreview = false }) {
@@ -103,11 +102,25 @@ function PollPlayer({ poll, activePalette, isPreview = false }) {
             }
 
             return (
-                <div className={`${heightClass} w-full`}>
+                <div className={`${heightClass} w-full flex flex-wrap content-center justify-center gap-4 p-4 overflow-y-auto`}>
                     {cloudData.length > 0 ? (
-                        <div style={{ width: '100%', height: '100%' }}>
-                            <ReactWordcloud words={cloudData} options={options} callbacks={callbacks} />
-                        </div>
+                        cloudData.map((w, i) => {
+                            const size = Math.max(12, Math.min(60, 12 + (w.value * 5))); // Basic sizing
+                            return (
+                                <span
+                                    key={i}
+                                    style={{
+                                        fontSize: `${size}px`,
+                                        color: COLORS[i % COLORS.length],
+                                        fontFamily: 'Impact, sans-serif'
+                                    }}
+                                    className="transition-all hover:scale-110 cursor-default"
+                                    title={`${w.text}: ${w.value}`}
+                                >
+                                    {w.text}
+                                </span>
+                            );
+                        })
                     ) : (
                         <div className="flex items-center justify-center h-full text-gray-400">Waiting for responses...</div>
                     )}
