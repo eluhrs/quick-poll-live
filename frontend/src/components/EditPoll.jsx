@@ -357,19 +357,18 @@ function EditPoll() {
                                 </div>
 
                                 {/* Date & Duration */}
-                                <div className="flex gap-4">
+                                <div className="flex gap-8 justify-center items-end">
                                     {/* Date Input */}
-                                    {/* Date Input */}
-                                    <div className="flex-grow">
+                                    <div className="w-64">
                                         <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Close Date</label>
-                                        <div className="flex items-center gap-4">
+                                        <div className="flex items-center gap-3">
                                             <button
                                                 type="button"
                                                 onClick={() => settingsDateRef.current.showPicker()}
-                                                className={`flex items-center gap-3 px-5 py-3 rounded-xl border-2 transition-all font-bold w-full ${settingsForm.closes_at ? 'border-primary text-primary bg-secondary/30' : 'border-gray-200 text-gray-500 hover:border-gray-300 hover:bg-gray-50'}`}
+                                                className={`flex items-center gap-2 px-4 py-3 rounded-xl border-2 transition-all font-bold w-full truncate ${settingsForm.closes_at ? 'border-primary text-primary bg-secondary/30' : 'border-gray-200 text-gray-500 hover:border-gray-300 hover:bg-gray-50'}`}
                                             >
-                                                <Calendar size={20} />
-                                                <span>{settingsForm.closes_at ? new Date(settingsForm.closes_at).toLocaleString() : 'Schedule Close Date'}</span>
+                                                <Calendar size={18} className="flex-shrink-0" />
+                                                <span className="truncate">{settingsForm.closes_at ? new Date(settingsForm.closes_at).toLocaleDateString() : 'Set Date'}</span>
                                             </button>
                                             {settingsForm.closes_at && (
                                                 <button
@@ -378,7 +377,7 @@ function EditPoll() {
                                                     className="text-gray-400 hover:text-gray-600 p-2 border border-gray-200 rounded-lg hover:bg-gray-50"
                                                     title="Clear Date"
                                                 >
-                                                    <X size={20} />
+                                                    <X size={18} />
                                                 </button>
                                             )}
                                         </div>
@@ -392,22 +391,25 @@ function EditPoll() {
                                     </div>
 
                                     {/* Duration Input */}
-                                    <div className="w-1/4 min-w-[120px]">
-                                        <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Slide Duration (s)</label>
-                                        <input
-                                            type="number"
-                                            min="1"
-                                            max="60"
-                                            value={settingsForm.slide_duration}
-                                            onChange={(e) => setSettingsForm({ ...settingsForm, slide_duration: parseInt(e.target.value) || 3 })}
-                                            className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary focus:ring-0 outline-none transition-colors text-lg font-bold text-center"
-                                        />
+                                    <div className="w-32">
+                                        <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Slide Duration</label>
+                                        <div className="relative">
+                                            <input
+                                                type="number"
+                                                min="1"
+                                                max="60"
+                                                value={settingsForm.slide_duration}
+                                                onChange={(e) => setSettingsForm({ ...settingsForm, slide_duration: parseInt(e.target.value) || 3 })}
+                                                className="w-full px-3 py-3 pr-8 border-2 border-gray-200 rounded-xl focus:border-primary focus:ring-0 outline-none transition-colors text-lg font-bold text-center"
+                                            />
+                                            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold pointer-events-none">s</span>
+                                        </div>
                                     </div>
 
                                     {/* Show Title Page Toggle */}
-                                    <div className="flex flex-col">
-                                        <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Show Title Page</label>
-                                        <div className="flex items-center gap-3 h-[52px]"> {/* Height matches inputs */}
+                                    <div className="flex flex-col w-40 items-center">
+                                        <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Show Title</label>
+                                        <div className="flex items-center gap-3 h-[52px]">
                                             <span className={`text-sm font-bold ${!settingsForm.enable_title_page ? 'text-gray-900' : 'text-gray-400'}`}>No</span>
                                             <button
                                                 type="button"
