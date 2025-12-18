@@ -4,18 +4,23 @@ from app import models
 from app.auth import get_password_hash
 import secrets
 
-def seed_data():
+import sys
+
+def seed_data(target_username="admin"):
     db = SessionLocal()
     try:
-        # 1. Get Admin User
-        admin = db.query(models.User).filter(models.User.username == "admin").first()
-        if not admin:
-            print("Admin user not found. Creating...")
+        # 1. Get User
+        user = db.query(models.User).filter(models.User.username == target_username).first()
+        if not user:
+            print(f"User {target_username} not found. Creating...")
             hashed_password = get_password_hash("password")
-            admin = models.User(username="admin", hashed_password=hashed_password)
-            db.add(admin)
+            user = models.User(username=target_username, hashed_password=hashed_password)
+            db.add(user)
             db.commit()
-            db.refresh(admin)
+            db.refresh(user)
+            print(f"Created user: {user.username} (ID: {user.id})")
+        else:
+            print(f"Seeding data for existing user: {user.username} (ID: {user.id})")
 
         # 2. Create Poll
         poll_title = "Tech Team Survey 2025"
@@ -23,7 +28,7 @@ def seed_data():
         # Set close date to 7 days from now
         import datetime
         closes_at = datetime.datetime.utcnow() + datetime.timedelta(days=7)
-        poll = models.Poll(title=poll_title, slug=slug, owner_id=admin.id, is_active=True, closes_at=closes_at)
+        poll = models.Poll(title=poll_title, slug=slug, owner_id=user.id, is_active=True, closes_at=closes_at)
         db.add(poll)
         db.commit()
         db.refresh(poll)
@@ -145,7 +150,7 @@ def seed_data():
 
         # 5. Create an Archived Poll
         expired_date = datetime.datetime.utcnow() - datetime.timedelta(days=1)
-        archived_poll = models.Poll(title="Old Team Survey 2024", slug=secrets.token_hex(3), owner_id=admin.id, is_active=False, closes_at=expired_date, closed_at=expired_date)
+        archived_poll = models.Poll(title="Old Team Survey 2024", slug=secrets.token_hex(3), owner_id=user.id, is_active=False, closes_at=expired_date, closed_at=expired_date)
         db.add(archived_poll)
         db.commit()
         print(f"Created Archived Poll: {archived_poll.title}")
@@ -157,4 +162,5 @@ def seed_data():
         db.close()
 
 if __name__ == "__main__":
-    seed_data()
+    target_user = sys.argv[1] if len(sys.argv) > 1 else "admin"
+    seed_data(target_user)
