@@ -38,8 +38,8 @@ The backend writes database files to `./data`. For security, we restrict access 
 
 ```bash
 mkdir data
-# Set ownership to standard user (1000:1000 is typical for the created 'appuser')
-sudo chown -R 1000:1000 data
+# Set ownership to standard user (5001:5001 matches the container user)
+sudo chown -R 5001:5001 data
 # Restrict permissions so only the owner can read/write (Mode 700)
 sudo chmod 700 data
 ```
@@ -104,5 +104,5 @@ sudo ufw enable
 *Note: Ports 10001 and 8000 are explicitly bound to `127.0.0.1` in Docker, so they are not accessible externally regardless of firewall, but UFW adds a layer of safety.*
 
 ## Troubleshooting
-*   **"Unable to open database"**: Run `sudo chown -R 1000:1000 data && sudo chmod 700 data` to fix permission issues.
+*   **"Unable to open database"**: Run `sudo chown -R 5001:5001 data && sudo chmod 700 data` to fix permission issues.
 *   **"API Error" in Browser**: Check F12 Console. If 404/502 on `/api/...`, check if `poll_backend` container is running (`docker compose ps`).

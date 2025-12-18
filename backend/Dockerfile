@@ -7,8 +7,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-# Create non-root user and setup permissions
-RUN adduser --disabled-password --gecos "" appuser \
+# Create non-root user with UID 5001 (to match host requirement)
+RUN addgroup --gid 5001 appuser \
+    && adduser --uid 5001 --gid 5001 --disabled-password --gecos "" appuser \
     && mkdir -p /data \
     && chown -R appuser:appuser /app /data
 
