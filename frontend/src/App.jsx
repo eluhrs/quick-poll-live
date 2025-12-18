@@ -37,11 +37,15 @@ class GlobalErrorBoundary extends React.Component {
     render() {
         if (this.state.hasError) {
             return (
-                <div className="p-8 text-white bg-red-900 min-h-screen">
-                    <h1 className="text-3xl font-bold mb-4">Critical Application Crash</h1>
-                    <pre className="text-sm bg-black/30 p-4 rounded overflow-auto">
-                        {this.state.error?.toString()}
-                    </pre>
+                <div className="p-8 text-[#502d0e] bg-gray-50 min-h-screen flex flex-col items-center justify-center">
+                    <h1 className="text-3xl font-bold mb-4">Something went wrong.</h1>
+                    <p className="mb-4">We encountered an unexpected error.</p>
+                    <button
+                        onClick={() => window.location.reload()}
+                        className="px-6 py-2 bg-[#502d0e] text-white rounded hover:bg-[#502d0e]/90 transition"
+                    >
+                        Reload Application
+                    </button>
                 </div>
             );
         }
@@ -83,14 +87,8 @@ function App() {
                     <Route path="/scratchpad/buttons" element={<ScratchpadButtons />} />
                     <Route path="/scratchpad/tabset" element={<ScratchpadTabset />} />
 
-                    {/* 404 - Debug */}
-                    <Route path="*" element={
-                        <div className="p-8 text-red-600">
-                            <h1 className="text-xl font-bold">404 - Route Not Found</h1>
-                            <p>Current Path: {window.location.pathname}</p>
-                            <p>Params: {window.location.search}</p>
-                        </div>
-                    } />
+                    {/* 404 - Redirect to Home */}
+                    <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
             </GlobalErrorBoundary>
         </Router>
