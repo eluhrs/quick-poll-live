@@ -45,9 +45,11 @@ sudo chmod 700 data
 ```
 
 ### 3. Build and Run
-Build the containers (this bakes the API URL into the frontend):
+Build the containers (this bakes the API URL into the frontend).
+**Use `--no-cache` if upgrading to clear out old layers:**
 ```bash
-docker compose up -d --build
+docker compose build --no-cache frontend
+docker compose up -d
 ```
 Verify it is running:
 ```bash
@@ -75,13 +77,18 @@ Insert the following `ProxyPass` rules.
     SSLCertificateFile /path/to/cert.pem
     SSLCertificateKeyFile /path/to/key.pem
 
+    RequestHeader set X-Forwarded-Proto "https"
+    RequestHeader set X-Forwarded-Port "443"
+
+    # WebSocket Proxy (Critical for Real-Time Updates)
+    # Must be placed BEFORE the catch-all '/' proxy
+    ProxyPass /ws/ ws://127.0.0.1:10001/ws/
+    ProxyPassReverse /ws/ ws://127.0.0.1:10001/ws/
+
     # Frontend Proxy (Route EVERYTHING to Frontend Container: 10001)
     # The Frontend Nginx will internally proxy /api requests to the backend.
     ProxyPass / http://127.0.0.1:10001/
     ProxyPassReverse / http://127.0.0.1:10001/
-
-    RequestHeader set X-Forwarded-Proto "https"
-    RequestHeader set X-Forwarded-Port "443"
 </VirtualHost>
 ```
 
@@ -106,3 +113,6 @@ sudo ufw enable
 ## Troubleshooting
 *   **"Unable to open database"**: Run `sudo chown -R 5001:5001 data && sudo chmod 700 data` to fix permission issues.
 *   **"API Error" in Browser**: Check F12 Console. If 404/502 on `/api/...`, check if `poll_backend` container is running (`docker compose ps`).
+*   **Old Code Persists / "Zombie Files"**: If `git pull` days "Already up to date" but the site is still old, the local file system is desynchronized.
+    *   **Fix**: `git fetch --all && git reset --hard origin/master`
+    *   **Then Rebuild**: `docker compose build --no-cache frontend`
