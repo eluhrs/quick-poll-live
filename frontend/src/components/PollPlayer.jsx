@@ -3,7 +3,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieCha
 import { ChevronLeft, ChevronRight, Play, Pause } from 'lucide-react';
 import { PALETTES } from '../constants/palettes';
 
-function PollPlayer({ poll, activePalette, enableTitlePage, isPreview = false }) {
+function PollPlayer({ poll, activePalette, enableTitlePage, isPreview = false, controlsBehavior = 'visible' }) {
     // Determine if title page should be shown
     const shouldShowTitle = enableTitlePage !== undefined ? enableTitlePage : poll.enable_title_page;
 
@@ -24,6 +24,7 @@ function PollPlayer({ poll, activePalette, enableTitlePage, isPreview = false })
     const hasSlides = slides.length > 0;
 
     const [currentIndex, setCurrentIndex] = useState(0);
+    const [isHovering, setIsHovering] = useState(false);
     // Reset index if slides config changes (e.g. toggling title page) or poll changes
     useEffect(() => {
         setCurrentIndex(0);
@@ -99,46 +100,22 @@ function PollPlayer({ poll, activePalette, enableTitlePage, isPreview = false })
 
     // --- RENDERERS ---
 
-    // 1. Title Page Renderer
-    if (isTitlePage) {
-        return (
-            <div className="flex flex-col h-full w-full bg-white relative overflow-hidden">
-                <div className="flex-grow flex flex-col items-center justify-center text-center p-8 z-10">
-                    <h1 className="text-5xl md:text-7xl font-black text-gray-900 mb-8 tracking-tight leading-tight max-w-4xl" style={{ color: COLORS[0] }}>
-                        {poll.title}
-                    </h1>
-                    <div className="grid grid-cols-3 gap-8 md:gap-12 text-center">
-                        <div>
-                            <div className="text-4xl font-bold mb-2 text-gray-800">{questions.length}</div>
-                            <div className="text-gray-500 font-bold uppercase tracking-widest text-sm">Questions</div>
-                        </div>
-                        <div>
-                            <div className="text-4xl font-bold mb-2 text-gray-800">{totalVotes}</div>
-                            <div className="text-gray-500 font-bold uppercase tracking-widest text-sm">Responses</div>
-                        </div>
-                        <div>
-                            <div className="text-4xl font-bold mb-2 text-gray-800">{poll.closes_at ? new Date(poll.closes_at).toLocaleDateString() : '∞'}</div>
-                            <div className="text-gray-500 font-bold uppercase tracking-widest text-sm">Close Date</div>
-                        </div>
-                    </div>
-                </div>
-                {/* Controls */}
-                <div className="h-16 flex justify-center items-center gap-6 text-gray-400 hover:text-gray-600 transition border-t border-gray-100 bg-gray-50/50 backdrop-blur-sm">
-                    <button onClick={handlePrev} className="p-3 hover:bg-white hover:shadow-md rounded-full transition"><ChevronLeft size={28} /></button>
-                    <button onClick={() => setIsPlaying(!isPlaying)} className="p-3 hover:bg-white hover:shadow-md rounded-full transition text-primary">
-                        {isPlaying ? <Pause size={28} /> : <Play size={28} />}
-                    </button>
-                    <button onClick={handleNext} className="p-3 hover:bg-white hover:shadow-md rounded-full transition"><ChevronRight size={28} /></button>
-                </div>
-            </div>
-        );
-    }
+    // 1. Unified Render Preparation
+
+    // Controls Logic
+    const controlsOpacity = controlsBehavior === 'autohide' && !isHovering ? 'opacity-0' : 'opacity-100';
+    // Use absolute positioning for controls to overlay without taking up layout space in autohide mode?
+    // User requested "remove controls ... if not ... hide them".
+    // To prevent "jump", they should probably overlay or take up constant space.
+    // If they take up constant space but are invisible, the space is still there (good for layout stability).
+    // Let's keep them taking up space (h-16) but just fade opacity.
+    const controlsClass = `h-16 flex justify-center items-center gap-6 text-gray-400 hover:text-gray-600 transition duration-300 border-t border-gray-100 bg-gray-50/50 backdrop-blur-sm w-full z-20 ${controlsOpacity}`;
 
     // 2. Question Data Prep
-    const data = question.options.map(opt => ({
+    const data = question ? question.options.map(opt => ({
         name: opt.text,
         votes: opt.votes ? opt.votes.length : 0
-    }));
+    })) : [];
 
     const renderVisualization = () => {
         const visType = question.visualization_type || 'bar';
@@ -350,21 +327,52 @@ function PollPlayer({ poll, activePalette, enableTitlePage, isPreview = false })
         );
     };
 
-    // 3. Question Renderer
+    // 3. Unified Renderer
     return (
-        <div className="flex flex-col h-full w-full">
-            <div className="flex-grow flex flex-col justify-center items-center p-4">
-                <h2 className={`${isPreview ? 'text-2xl' : 'text-4xl'} font-serif font-bold mb-8 text-[#502d0e] leading-tight text-center`} style={{ color: COLORS[0] }}>{question.text}</h2>
-                {renderVisualization()}
+        <div
+            className="flex flex-col h-full w-full bg-white relative overflow-hidden group"
+            onMouseEnter={() => setIsHovering(true)}
+            onMouseLeave={() => setIsHovering(false)}
+        >
+            {/* Main Content Area: Flex Grow to Fill available space */}
+            <div className="flex-grow flex flex-col justify-center items-center w-full relative z-10 overflow-hidden pb-16">
+                {isTitlePage ? (
+                    <div className="flex flex-col items-center justify-center text-center p-8 w-full h-full">
+                        <h1 className="text-5xl md:text-7xl font-black text-gray-900 mb-8 tracking-tight leading-tight max-w-4xl" style={{ color: COLORS[0] }}>
+                            {poll.title}
+                        </h1>
+                        <div className="grid grid-cols-3 gap-8 md:gap-12 text-center">
+                            <div>
+                                <div className="text-4xl font-bold mb-2 text-gray-800">{questions.length}</div>
+                                <div className="text-gray-500 font-bold uppercase tracking-widest text-sm">Questions</div>
+                            </div>
+                            <div>
+                                <div className="text-4xl font-bold mb-2 text-gray-800">{totalVotes}</div>
+                                <div className="text-gray-500 font-bold uppercase tracking-widest text-sm">Responses</div>
+                            </div>
+                            <div>
+                                <div className="text-4xl font-bold mb-2 text-gray-800">{poll.closes_at ? new Date(poll.closes_at).toLocaleDateString() : '∞'}</div>
+                                <div className="text-gray-500 font-bold uppercase tracking-widest text-sm">Close Date</div>
+                            </div>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="w-full h-full flex flex-col justify-center p-4">
+                        <h2 className={`${isPreview ? 'text-2xl' : 'text-4xl'} font-serif font-bold mb-8 text-[#502d0e] leading-tight text-center`} style={{ color: COLORS[0] }}>{question.text}</h2>
+                        <div className="flex-grow w-full relative flex flex-col justify-center">
+                            {renderVisualization()}
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Controls */}
-            <div className="h-12 flex justify-center items-center gap-6 text-gray-400 hover:text-gray-600 transition border-t border-gray-100 mt-4">
-                <button onClick={handlePrev} className="p-2 hover:bg-gray-100 rounded-full transition"><ChevronLeft size={24} /></button>
-                <button onClick={() => setIsPlaying(!isPlaying)} className="p-2 hover:bg-gray-100 rounded-full transition text-primary">
-                    {isPlaying ? <Pause size={24} /> : <Play size={24} />}
+            <div className={controlsClass}>
+                <button onClick={handlePrev} className="p-3 hover:bg-white hover:shadow-md rounded-full transition"><ChevronLeft size={28} /></button>
+                <button onClick={() => setIsPlaying(!isPlaying)} className="p-3 hover:bg-white hover:shadow-md rounded-full transition text-primary">
+                    {isPlaying ? <Pause size={28} /> : <Play size={28} />}
                 </button>
-                <button onClick={handleNext} className="p-2 hover:bg-gray-100 rounded-full transition"><ChevronRight size={24} /></button>
+                <button onClick={handleNext} className="p-3 hover:bg-white hover:shadow-md rounded-full transition"><ChevronRight size={28} /></button>
             </div>
         </div>
     );

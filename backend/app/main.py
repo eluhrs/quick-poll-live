@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI, WebSocket as FastAPIWebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from . import models, database, auth
@@ -7,14 +8,12 @@ from .websockets import manager
 
 models.Base.metadata.create_all(bind=database.engine)
 
-app = FastAPI(title="Live Polling API")
+# Docs disabled globally for security/audit compliance
+app = FastAPI(title="Live Polling API", docs_url=None, redoc_url=None)
 
-origins = [
-    "http://localhost:5173",
-    "http://localhost:8081",
-    "http://localhost:3000",
-    "*" # Permissive for easy mobile testing on same network locally
-]
+# Security: CORS restricted to allowed origins
+allowed_origins_str = os.getenv("ALLOWED_ORIGINS", "https://livepoll.lehigh.edu,http://localhost:8081")
+origins = allowed_origins_str.split(",")
 
 app.add_middleware(
     CORSMiddleware,

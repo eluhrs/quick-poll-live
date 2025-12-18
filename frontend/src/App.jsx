@@ -42,7 +42,7 @@ function App() {
                 } />
 
                 {/* Public Routes */}
-                <Route path="/:slug/view" element={<PollDisplay />} />
+                <Route path="/:slug/results" element={<PollDisplay />} />
                 <Route path="/:slug/vote" element={<VotingView />} />
                 <Route path="/poll/:slug" element={<RedirectToVote />} />
                 <Route path="/:slug" element={<RedirectToVote />} />

@@ -8,24 +8,27 @@ services:
       - ./backend:/app
       - ./data:/data
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     environment:
       - DATABASE_URL=sqlite:////data/poll.db
       - REDIS_URL=redis://redis:6379/0
-      - SECRET_KEY=supersecretkeychangeinproduction
+      - SECRET_KEY=${SECRET_KEY}
       - ALGORITHM=HS256
       - ACCESS_TOKEN_EXPIRE_MINUTES=30
     depends_on:
       - redis
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        - VITE_API_URL=/api
     container_name: poll_frontend
     volumes:
       - ./frontend:/app
       - /app/node_modules
     ports:
-      - "${APP_PORT:-8081}:8081"
+      - "127.0.0.1:${APP_PORT:-8081}:80"
     environment:
       - VITE_API_URL=http://localhost:8000
     depends_on:

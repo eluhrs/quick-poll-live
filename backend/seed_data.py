@@ -44,6 +44,12 @@ def seed_data():
                 "options": ["React", "Vue", "Angular", "Svelte", "Next.js"]
             },
             {
+                "text": "Preferred Office Coffee (Pie)",
+                "type": "multiple_choice",
+                "vis": "pie",
+                "options": ["Espresso", "Latte", "Drip Coffee", "Cold Brew", "Tea", "None"]
+            },
+            {
                 "text": "Project Priorities (Treemap)",
                 "type": "multiple_choice",
                 "vis": "treemap",

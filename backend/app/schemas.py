@@ -77,6 +77,10 @@ class Poll(BaseModel):
     questions: List[Question] = []
     class Config:
         orm_mode = True
+        # Force "Z" suffix for naive datetimes (assumed UTC) and ISO format
+        json_encoders = {
+            datetime: lambda v: v.isoformat() + 'Z' if v.tzinfo is None else v.isoformat()
+        }
 
 class UserBase(BaseModel):
     username: str
