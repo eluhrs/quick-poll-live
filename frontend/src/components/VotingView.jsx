@@ -12,6 +12,7 @@ function VotingView() {
     const [error, setError] = useState(null);
 
     useEffect(() => {
+        document.title = 'Quick Poll Live: Vote';
         fetchPoll();
     }, [slug]);
 

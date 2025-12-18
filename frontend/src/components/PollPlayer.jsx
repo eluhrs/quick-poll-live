@@ -35,22 +35,27 @@ function PollPlayer({ poll, activePalette, enableTitlePage, isPreview = false, c
     const timerRef = useRef(null);
 
     // Auto-advance logic
+    // Timer Logic
     useEffect(() => {
-        if (isPlaying && hasSlides) {
-            timerRef.current = setInterval(() => {
-                setTimeLeft((prev) => {
-                    if (prev <= 1) {
-                        handleNext();
-                        return poll.slide_duration || 3;
-                    }
-                    return prev - 1;
-                });
-            }, 1000);
-        } else {
-            clearInterval(timerRef.current);
+        if (!isPlaying || !hasSlides) return;
+
+        const interval = setInterval(() => {
+            setTimeLeft((prev) => {
+                // If time is up, we don't reset here, we let the effect trigger
+                if (prev <= 0) return 0;
+                return prev - 1;
+            });
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [isPlaying, hasSlides]);
+
+    // Navigation Trigger
+    useEffect(() => {
+        if (timeLeft === 0 && isPlaying) {
+            handleNext();
         }
-        return () => clearInterval(timerRef.current);
-    }, [isPlaying, currentIndex, poll.slide_duration, hasSlides]);
+    }, [timeLeft, isPlaying]);
 
     const handleNext = () => {
         if (!hasSlides) return;
@@ -119,7 +124,7 @@ function PollPlayer({ poll, activePalette, enableTitlePage, isPreview = false, c
 
     const renderVisualization = () => {
         const visType = question.visualization_type || 'bar';
-        const heightClass = isPreview ? "h-[300px]" : "h-[500px]";
+        const heightClass = isPreview ? "h-[300px]" : "h-full min-h-[400px]";
         const fontSize = isPreview ? 12 : 18;
         const axisColor = "#374151";
 
@@ -151,7 +156,7 @@ function PollPlayer({ poll, activePalette, enableTitlePage, isPreview = false, c
             const maxSize = 75;
 
             return (
-                <div className={`${heightClass} w-full flex flex-wrap content-center justify-center gap-2 p-4 overflow-y-auto`}>
+                <div className={`${heightClass} w-full md:w-2/5 mx-auto flex flex-wrap content-center justify-center gap-6 p-4 overflow-y-auto`}>
                     {cloudData.length > 0 ? (
                         cloudData.map((w, i) => {
                             let size = minSize;
@@ -203,7 +208,7 @@ function PollPlayer({ poll, activePalette, enableTitlePage, isPreview = false, c
             return (
                 <div className={`${heightClass} w-full`}>
                     <ResponsiveContainer width="100%" height="100%">
-                        <RadarChart cx="50%" cy="50%" outerRadius="80%" data={data}>
+                        <RadarChart cx="50%" cy="60%" outerRadius="90%" data={data}>
                             <PolarGrid stroke="#9ca3af" />
                             <PolarAngleAxis dataKey="name" tick={{ fill: axisColor, fontSize: fontSize, fontWeight: 'bold' }} />
                             <PolarRadiusAxis angle={30} domain={[0, 'auto']} stroke={axisColor} />
@@ -216,7 +221,7 @@ function PollPlayer({ poll, activePalette, enableTitlePage, isPreview = false, c
             return (
                 <div className={`${heightClass} w-full`}>
                     <ResponsiveContainer width="100%" height="100%">
-                        <RadialBarChart cx="50%" cy="50%" innerRadius="10%" outerRadius="80%" barSize={20} data={data}>
+                        <RadialBarChart cx="50%" cy="60%" innerRadius="10%" outerRadius="90%" barSize={20} data={data}>
                             <RadialBar minAngle={15} label={{ position: 'insideStart', fill: '#fff', fontWeight: 'bold' }} background clockWise dataKey="votes">
                                 {data.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
                             </RadialBar>
@@ -289,7 +294,7 @@ function PollPlayer({ poll, activePalette, enableTitlePage, isPreview = false, c
             };
 
             return (
-                <div className={`${heightClass} w-full`}>
+                <div className={`${heightClass} w-4/5 mx-auto`}>
                     <ResponsiveContainer width="100%" height="100%">
                         <Treemap
                             data={data}
@@ -335,7 +340,7 @@ function PollPlayer({ poll, activePalette, enableTitlePage, isPreview = false, c
             onMouseLeave={() => setIsHovering(false)}
         >
             {/* Main Content Area: Flex Grow to Fill available space */}
-            <div className="flex-grow flex flex-col justify-center items-center w-full relative z-10 overflow-hidden pb-16">
+            <div className="flex-grow flex flex-col justify-center items-center w-full relative z-10 overflow-hidden">
                 {isTitlePage ? (
                     <div className="flex flex-col items-center justify-center text-center p-8 w-full h-full">
                         <h1 className="text-5xl md:text-7xl font-black text-gray-900 mb-8 tracking-tight leading-tight max-w-4xl" style={{ color: COLORS[0] }}>

@@ -31,6 +31,7 @@ function EditPoll() {
     const settingsDateRef = useRef(null);
 
     useEffect(() => {
+        document.title = 'Quick Poll Live: Edit';
         fetchPoll();
     }, [slug]);
 

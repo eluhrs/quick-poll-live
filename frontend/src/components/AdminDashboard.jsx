@@ -80,6 +80,7 @@ function AdminDashboard() {
     };
 
     useEffect(() => {
+        document.title = 'Quick Poll Live: Dashboard';
         fetchPolls();
     }, []);
 

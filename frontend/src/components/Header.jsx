@@ -16,11 +16,11 @@ function Header() {
         <div className="flex justify-between items-center mb-8 border-b border-gray-400 pb-6">
             <div className="flex items-center gap-3">
                 <img
-                    src="/lehigh_logo.png"
-                    alt="Lehigh University"
+                    src="/lts_logo.png"
+                    alt="Lehigh LTS"
                     className="h-12 w-auto"
                 />
-                <h1 className="text-3xl font-serif font-bold text-[#502d0e]">Live Poll</h1>
+                <h1 className="text-3xl font-serif font-bold text-[#502d0e]">Quick Poll Live</h1>
             </div>
 
             <div className="flex gap-4">

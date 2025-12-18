@@ -7,8 +7,10 @@ from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 from . import models, schemas, database
 
+import os
+
 # Config
-SECRET_KEY = "supersecretkeychangeinproduction"
+SECRET_KEY = os.getenv("SECRET_KEY", "supersecretkeychangeinproduction")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 

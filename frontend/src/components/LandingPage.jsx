@@ -15,6 +15,10 @@ function LandingPage() {
     const usernameInputRef = useRef(null);
 
     useEffect(() => {
+        document.title = 'Quick Poll Live';
+    }, []);
+
+    useEffect(() => {
         if (isAdminLogin && usernameInputRef.current) {
             usernameInputRef.current.focus();
         }
@@ -50,9 +54,9 @@ function LandingPage() {
                 <div className="flex justify-center">
                     <button onClick={() => setIsAdminLogin(!isAdminLogin)} className="focus:outline-none transition transform hover:scale-105" title={isAdminLogin ? "Back to Join" : "Live Poll Login"}>
                         <img
-                            src="/lehigh_logo.png"
-                            alt="Lehigh University"
-                            className="h-40 w-auto"
+                            src="/lts_logo.png"
+                            alt="Lehigh LTS"
+                            className="w-full max-w-[320px] h-auto object-contain"
                         />
                     </button>
                 </div>
@@ -60,7 +64,7 @@ function LandingPage() {
                 {!isAdminLogin ? (
                     <>
                         <div>
-                            <h1 className="text-4xl font-serif font-bold tracking-tight text-primary">Live Poll</h1>
+                            <h1 className="text-4xl font-serif font-bold tracking-tight text-primary">Quick Poll Live</h1>
                             <p className="text-gray-600 text-lg mt-2">Enter a poll code to participate</p>
                         </div>
 
@@ -77,14 +81,14 @@ function LandingPage() {
                                 type="submit"
                                 className="w-full bg-primary text-white font-bold py-4 rounded-lg hover:bg-primary-hover transition transform active:scale-95 flex items-center justify-center gap-2"
                             >
-                                Join Live Poll <ArrowRight size={20} />
+                                Join Quick Poll <ArrowRight size={20} />
                             </button>
                         </form>
                     </>
                 ) : (
                     <>
                         <div>
-                            <h1 className="text-4xl font-serif font-bold tracking-tight text-primary">Live Poll Login</h1>
+                            <h1 className="text-4xl font-serif font-bold tracking-tight text-primary">Quick Poll Login</h1>
                             <p className="text-gray-600 text-lg mt-2">Enter your credentials</p>
                         </div>
 

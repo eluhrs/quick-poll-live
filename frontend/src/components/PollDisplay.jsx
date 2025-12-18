@@ -15,30 +15,70 @@ function PollDisplay() {
         const params = new URLSearchParams(window.location.search);
         const qId = params.get('q');
         if (qId && poll) {
-            // PollPlayer currently handles index internally, but for singleViewMode linking we might need to pass initial index.
-            // For now, let's just let PollPlayer play starting from 0 or we add initialIndex prop.
-            // Given the complexity of moving state down, I'll pass poll, but initial index logic requires Player update.
-            // Ignoring deep linking for specific question in Player for this iteration unless critical.
             setSingleViewMode(true);
         }
     }, [poll]);
 
     useEffect(() => {
-        fetchPoll();
-        const ws = new WebSocket(`ws://${location.hostname}:8000/ws/${slug}`);
+        if (poll) {
+            document.title = 'Quick Poll Live: Results';
+        }
+    }, [poll]);
 
-        ws.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            if (data.event === "update") {
-                fetchPoll();
-            }
+    useEffect(() => {
+        let ws;
+        let retryCount = 0;
+        let isAlive = true;
+
+        const connect = () => {
+            if (!isAlive) return;
+
+            console.log(`[WS] Connecting to ${slug}...`);
+            ws = new WebSocket(`ws://${location.hostname}:8000/ws/${slug}`);
+
+            ws.onopen = () => {
+                console.log("[WS] Connected");
+                retryCount = 0;
+            };
+
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                console.log("[WS] Message:", data);
+                if (data.event === "update") {
+                    console.log("[WS] Update received! Fetching poll...");
+                    fetchPoll();
+                }
+            };
+
+            ws.onclose = () => {
+                console.log("[WS] Disconnected");
+                if (isAlive) {
+                    const timeout = Math.min(5000, 1000 * Math.pow(2, retryCount));
+                    retryCount++;
+                    console.log(`[WS] Reconnecting in ${timeout}ms...`);
+                    setTimeout(connect, timeout);
+                }
+            };
+
+            ws.onerror = (err) => {
+                console.error("[WS] Error:", err);
+                ws.close(); // Trigger onclose
+            };
         };
-        return () => ws.close();
+
+        fetchPoll();
+        connect();
+
+        return () => {
+            isAlive = false;
+            if (ws) ws.close();
+        };
     }, [slug]);
 
     const fetchPoll = async () => {
         try {
-            const res = await api.get(`/polls/${slug}`);
+            // Add timestamp to prevent caching
+            const res = await api.get(`/polls/${slug}?t=${Date.now()}`);
             const sortedQuestions = res.data.questions.sort((a, b) => (a.order || 0) - (b.order || 0));
             setPoll({ ...res.data, questions: sortedQuestions });
         } catch (err) {
@@ -73,31 +113,35 @@ function PollDisplay() {
                 <PollPlayer poll={poll} controlsBehavior="autohide" />
             </div>
 
-            {/* Footer Bar - Always Visible, High Contrast */}
-            <div className="bg-[#502d0e] text-white h-24 flex items-center justify-between px-8 md:px-12 shadow-[0_-4px_20px_rgba(0,0,0,0.2)] z-30 flex-shrink-0">
+            {/* Footer Bar - Rebranded & Reorganized */}
+            <div className="bg-white text-[#502d0e] h-24 flex items-center justify-between px-8 md:px-12 shadow-[0_-4px_20px_rgba(0,0,0,0.1)] z-30 flex-shrink-0 border-t-8 border-[#502d0e]">
 
-                {/* Left: Join URL & QR */}
-                <div className="flex items-center gap-6 md:gap-8">
-                    <div className="bg-white p-1.5 rounded-lg shadow-lg flex-shrink-0">
-                        <QRCodeSVG value={`${joinUrl}/${slug}/vote`} size={70} />
-                    </div>
-                    <div className="flex flex-col justify-center">
-                        <span className="text-white/80 uppercase tracking-widest text-xs md:text-sm font-bold mb-0.5">Vote here:</span>
-                        <div className="text-2xl md:text-4xl font-black tracking-tight leading-none text-white">
-                            {window.location.host}
-                            <span className="text-white/60 font-normal ml-1">/{slug}</span>
-                        </div>
+                {/* Left: LTS Logo */}
+                <div className="flex items-center gap-4">
+                    <img
+                        src="/lts_logo.png"
+                        alt="Lehigh LTS"
+                        className="h-16 w-auto"
+                    />
+                </div>
+
+                {/* Center: URL Display */}
+                <div className="absolute left-1/2 transform -translate-x-1/2 flex flex-col items-center">
+                    <span className="text-[#502d0e]/60 uppercase tracking-widest text-xs font-bold mb-0.5">Vote here:</span>
+                    <div className="text-3xl md:text-5xl font-black tracking-tight leading-none text-[#502d0e]">
+                        {window.location.host}
+                        <span className="text-[#502d0e]/40 font-normal ml-1">/{slug}</span>
                     </div>
                 </div>
 
-                {/* Right: Code Display */}
+                {/* Right: QR & Code */}
                 <div className="flex items-center gap-6">
                     <div className="text-right hidden md:block">
-                        <div className="text-white/80 uppercase tracking-widest text-xs font-bold">Poll Code</div>
-                        <div className="text-sm text-white/60">Enter if asked</div>
+                        <div className="text-[#502d0e]/60 uppercase tracking-widest text-xs font-bold">Poll Code</div>
+                        <div className="font-mono text-xl font-bold text-[#502d0e]">{poll.slug}</div>
                     </div>
-                    <div className="font-mono text-4xl md:text-5xl font-black bg-black/20 px-6 py-2 rounded-xl border border-white/10 tracking-widest shadow-inner text-white">
-                        {poll.slug}
+                    <div className="bg-white p-1 rounded-lg border border-gray-200 shadow-sm flex-shrink-0">
+                        <QRCodeSVG value={`${joinUrl}/${slug}/vote`} size={64} fgColor="#502d0e" />
                     </div>
                 </div>
             </div>

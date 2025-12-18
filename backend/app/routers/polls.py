@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Body
+from fastapi import APIRouter, Depends, HTTPException, status, Body, BackgroundTasks
 from sqlalchemy.orm import Session
 from typing import List
 import secrets
@@ -54,7 +54,7 @@ def get_poll(slug: str, db: Session = Depends(database.get_db)):
     return poll
 
 @router.put("/{slug}", response_model=schemas.Poll)
-def update_poll(slug: str, poll_update: schemas.PollUpdate, db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_user)):
+def update_poll(slug: str, poll_update: schemas.PollUpdate, background_tasks: BackgroundTasks, db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_user)):
     poll = db.query(models.Poll).filter(models.Poll.slug == slug, models.Poll.owner_id == current_user.id).first()
     if not poll:
         raise HTTPException(status_code=404, detail="Poll not found")
@@ -79,10 +79,12 @@ def update_poll(slug: str, poll_update: schemas.PollUpdate, db: Session = Depend
 
     db.commit()
     db.refresh(poll)
+    db.refresh(poll)
+    background_tasks.add_task(manager.broadcast, {"event": "update", "poll_id": poll.id}, slug)
     return poll
 
 @router.put("/{slug}/close", response_model=schemas.Poll)
-def close_poll(slug: str, db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_user)):
+def close_poll(slug: str, background_tasks: BackgroundTasks, db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_user)):
     poll = db.query(models.Poll).filter(models.Poll.slug == slug, models.Poll.owner_id == current_user.id).first()
     if not poll:
         raise HTTPException(status_code=404, detail="Poll not found")
@@ -90,10 +92,12 @@ def close_poll(slug: str, db: Session = Depends(database.get_db), current_user: 
     poll.closed_at = datetime.utcnow()
     db.commit()
     db.refresh(poll)
+    db.refresh(poll)
+    background_tasks.add_task(manager.broadcast, {"event": "update", "poll_id": poll.id}, slug)
     return poll
 
 @router.put("/{slug}/open", response_model=schemas.Poll)
-def reopen_poll(slug: str, db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_user)):
+def reopen_poll(slug: str, background_tasks: BackgroundTasks, db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_user)):
     poll = db.query(models.Poll).filter(models.Poll.slug == slug, models.Poll.owner_id == current_user.id).first()
     if not poll:
         raise HTTPException(status_code=404, detail="Poll not found")
@@ -101,20 +105,26 @@ def reopen_poll(slug: str, db: Session = Depends(database.get_db), current_user:
     poll.closed_at = None
     db.commit()
     db.refresh(poll)
+    db.refresh(poll)
+    background_tasks.add_task(manager.broadcast, {"event": "update", "poll_id": poll.id}, slug)
     return poll
 
 @router.post("/{slug}/questions", response_model=schemas.Question)
-def add_question(slug: str, question: schemas.QuestionCreate, db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_user)):
+def add_question(slug: str, question: schemas.QuestionCreate, background_tasks: BackgroundTasks, db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_user)):
     poll = db.query(models.Poll).filter(models.Poll.slug == slug, models.Poll.owner_id == current_user.id).first()
     if not poll:
         raise HTTPException(status_code=404, detail="Poll not found")
     
+    # Calculate Order: Max current order + 1
+    max_order_q = db.query(models.Question).filter(models.Question.poll_id == poll.id).order_by(models.Question.order.desc()).first()
+    new_order = (max_order_q.order + 1) if max_order_q else 0
+
     db_question = models.Question(
         poll_id=poll.id, 
         text=question.text, 
         question_type=question.question_type, 
         visualization_type=question.visualization_type,
-        order=0 # Check if order is in schema, otherwise default 0
+        order=new_order
     )
     db.add(db_question)
     db.commit()
@@ -126,10 +136,12 @@ def add_question(slug: str, question: schemas.QuestionCreate, db: Session = Depe
     
     db.commit()
     db.refresh(db_question)
+    db.refresh(db_question)
+    background_tasks.add_task(manager.broadcast, {"event": "update", "poll_id": poll.id}, slug)
     return db_question
 
 @router.delete("/{slug}/questions/{question_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_question(slug: str, question_id: int, db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_user)):
+def delete_question(slug: str, question_id: int, background_tasks: BackgroundTasks, db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_user)):
     poll = db.query(models.Poll).filter(models.Poll.slug == slug, models.Poll.owner_id == current_user.id).first()
     if not poll:
         raise HTTPException(status_code=404, detail="Poll not found")
@@ -140,10 +152,18 @@ def delete_question(slug: str, question_id: int, db: Session = Depends(database.
     
     db.delete(question)
     db.commit()
+    db.delete(question)
+    db.commit()
+    background_tasks.add_task(manager.broadcast, {"event": "update", "poll_id": poll.id}, slug)
     return None
 
 @router.put("/{slug}/questions/reorder")
-def reorder_questions(slug: str, ordered_ids: List[int] = Body(...), db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_user)):
+def reorder_questions(slug: str, ordered_ids: List[int] = Body(...), background_tasks: BackgroundTasks = None, db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_user)):
+    # Note: background_tasks=None default because Body(...) comes before it in arg list sometimes causing issues if fastAPI order matters, 
+    # but actually FastAPI is smart. Let's strictly type it.
+    pass 
+    # Actually, simpler to just add it. reorder_questions(..., background_tasks: BackgroundTasks, ...)
+
     poll = db.query(models.Poll).filter(models.Poll.slug == slug, models.Poll.owner_id == current_user.id).first()
     if not poll:
         raise HTTPException(status_code=404, detail="Poll not found")
@@ -157,10 +177,14 @@ def reorder_questions(slug: str, ordered_ids: List[int] = Body(...), db: Session
             q_map[q_id].order = idx
             
     db.commit()
+            
+    db.commit()
+    if background_tasks:
+        background_tasks.add_task(manager.broadcast, {"event": "update", "poll_id": poll.id}, slug)
     return {"status": "success"}
 
 @router.put("/{slug}/questions/{question_id}", response_model=schemas.Question)
-def update_question(slug: str, question_id: int, question_update: schemas.QuestionCreate, db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_user)):
+def update_question(slug: str, question_id: int, question_update: schemas.QuestionCreate, background_tasks: BackgroundTasks, db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_user)):
     # Verify poll ownership
     poll = db.query(models.Poll).filter(models.Poll.slug == slug, models.Poll.owner_id == current_user.id).first()
     if not poll:
@@ -174,24 +198,35 @@ def update_question(slug: str, question_id: int, question_update: schemas.Questi
     db_question.text = question_update.text
     db_question.question_type = question_update.question_type
     db_question.visualization_type = question_update.visualization_type
-    # order ??
-
-    # Update options - simplest strategy: delete all and recreate
-    # (In a real app, you might try to preserve IDs for voting integrity, but for now we assume editing might reset votes or just keep them orphaned if not careful. 
-    # Actually, if we delete options, we lose votes linked to them usually. 
-    # USER REQUEST: "Make it so questions can be edited". 
-    # If we change options, checking if votes exist is safer, but simpler is just replace.)
     
-    # Deleting old options
-    db.query(models.Option).filter(models.Option.question_id == db_question.id).delete()
+    # Non-destructive Option Update
+    # 1. Fetch existing options
+    existing_options = db.query(models.Option).filter(models.Option.question_id == db_question.id).all()
+    existing_map = {opt.text: opt for opt in existing_options}
     
-    # Add new options
-    for opt in question_update.options:
-        db_option = models.Option(question_id=db_question.id, text=opt.text)
-        db.add(db_option)
+    # 2. Track which existing IDs are kept
+    kept_ids = set()
+    
+    # 3. Iterate new options
+    for opt_create in question_update.options:
+        text = opt_create.text
+        if text in existing_map:
+            # Keep existing (preserve ID and Votes)
+            kept_ids.add(existing_map[text].id)
+        else:
+            # Create new
+            new_opt = models.Option(question_id=db_question.id, text=text)
+            db.add(new_opt)
+            
+    # 4. Delete removed options
+    for opt in existing_options:
+        if opt.id not in kept_ids:
+            db.delete(opt)
 
     db.commit()
     db.refresh(db_question)
+    db.refresh(db_question)
+    background_tasks.add_task(manager.broadcast, {"event": "update", "poll_id": poll.id}, slug)
     return db_question
 
 @router.post("/{slug}/vote")
