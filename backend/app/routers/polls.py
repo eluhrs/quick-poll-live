@@ -44,7 +44,11 @@ def list_polls(active_only: bool = False, db: Session = Depends(database.get_db)
     if active_only:
         query = query.filter(models.Poll.is_active == True)
     
-    return query.order_by(models.Poll.created_at.desc()).all()
+    results = query.order_by(models.Poll.created_at.desc()).all()
+    print(f"DEBUG LIST_POLLS: UserID={current_user.id}, ActiveOnly={active_only}, Found={len(results)}")
+    for p in results:
+        print(f"  - Poll: {p.slug} (Owner: {p.owner_id}, Active: {p.is_active})")
+    return results
 
 @router.get("/{slug}", response_model=schemas.Poll)
 def get_poll(slug: str, db: Session = Depends(database.get_db)):
