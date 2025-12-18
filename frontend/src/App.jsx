@@ -53,8 +53,14 @@ function App() {
                 <Route path="/scratchpad/buttons" element={<ScratchpadButtons />} />
                 <Route path="/scratchpad/tabset" element={<ScratchpadTabset />} />
 
-                {/* 404 - Redirect to Home */}
-                <Route path="*" element={<Navigate to="/" replace />} />
+                {/* 404 - Debug */}
+                <Route path="*" element={
+                    <div className="p-8 text-red-600">
+                        <h1 className="text-xl font-bold">404 - Route Not Found</h1>
+                        <p>Current Path: {window.location.pathname}</p>
+                        <p>Params: {window.location.search}</p>
+                    </div>
+                } />
             </Routes>
         </Router>
     );
