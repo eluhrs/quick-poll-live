@@ -139,9 +139,10 @@ function PollDisplay() {
     // URL Construction
     const joinUrl = `${window.location.protocol}//${window.location.host}`;
 
-    // Close button for single view
-    const renderCloseButton = () => (
-        <div className="fixed top-8 left-8 z-50">
+    return (
+        <div className="h-screen flex flex-col bg-gray-50 font-sans overflow-hidden">
+            <h1 className="bg-yellow-400 text-black p-2 text-center text-xl font-bold z-[9999]">DEBUG VERSION LOADING...</h1>
+            {/* DEBUG OVERLAY */}
             <button
                 onClick={() => window.close()}
                 className="bg-white/80 p-2 rounded-full shadow hover:bg-white text-gray-600 transition"
