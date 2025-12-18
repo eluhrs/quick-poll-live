@@ -1,10 +1,10 @@
-# Server Configuration Guide: Live Poll App
+# Server Configuration Guide: Quick Poll Live
 **Target Hostname**: `livepoll.lehigh.edu`
 **Target Server**: `vos.cc.lehigh.edu` (or similar Debian host)
 
 ## Phase 1: Preparation
 We will use the following port assignment:
-*   **Application**: `livepoll` (Frontend Container)
+*   **Application**: `quick-poll-live` (Frontend Container)
 *   **Internal Container Port**: `80` (Nginx)
 *   **Chosen Host Port**: `10001` (Configured via `.env`)
 
@@ -13,8 +13,8 @@ We will use the following port assignment:
 ### 1. Setup Application
 ```bash
 # Clone
-git clone https://github.com/eluhrs/antigravity-mypoll.git livepoll
-cd livepoll
+# (Assuming you are already in the target directory, e.g. /var/www/livepoll)
+git clone https://github.com/eluhrs/quick-poll-live.git .
 
 # Configure Env
 cp example.env .env
