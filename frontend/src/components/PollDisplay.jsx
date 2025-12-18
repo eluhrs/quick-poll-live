@@ -153,12 +153,17 @@ function PollDisplay() {
 
         return (
             <div className="flex-grow w-full relative overflow-visible border-[10px] border-green-500 bg-green-100 p-4">
-                <h2 className="text-black font-bold">Poll Player Container</h2>
-                <ErrorBoundary>
-                    <div className="h-[500px] w-full border-4 border-blue-500 bg-white">
-                        <PollPlayer poll={poll} controlsBehavior="autohide" />
-                    </div>
-                </ErrorBoundary>
+                <h2 className="text-black font-bold text-lg mb-4">SUCCESS STATE RENDERED</h2>
+                <div className="p-4 bg-white border border-black mb-4">
+                    <p><strong>Debug Data:</strong></p>
+                    <pre className="text-xs">{JSON.stringify(poll, null, 2)}</pre>
+                </div>
+
+                {/* TEMPORARILY REMOVED POLLPLAYER TO ISOLATE RENDERING */}
+                {/* <PollPlayer poll={poll} controlsBehavior="autohide" /> */}
+                <div className="h-64 bg-blue-300 flex items-center justify-center text-2xl font-bold border-4 border-blue-600">
+                    PLAYER PLACEHOLDER (If you see this, Layout is OK)
+                </div>
             </div>
         );
     };
@@ -166,7 +171,7 @@ function PollDisplay() {
     return (
         <div className="min-h-screen flex flex-col bg-gray-50 font-sans border-8 border-purple-500">
             <h1 className="bg-yellow-400 text-black p-4 text-center text-xl font-bold z-[9999]">
-                DEBUG: Poll={poll ? 'OBJ' : 'NULL'} / {poll?.slug} / Err={poll?.error ? 'YES' : 'NO'}
+                DEBUG: Poll={poll ? 'OBJ' : 'NULL'} / Qs={poll?.questions?.length || 0} / Err={poll?.error ? 'YES' : 'NO'}
             </h1>
             {/* DEBUG OVERLAY */}
             <button
