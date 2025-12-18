@@ -136,7 +136,7 @@ function PollDisplay() {
     const renderContent = () => {
         if (poll?.error) {
             return (
-                <div className="p-8 text-red-600 bg-red-50">
+                <div className="p-8 text-red-600 bg-red-50 border-4 border-red-900">
                     <h1 className="text-xl font-bold">Error Loading Poll</h1>
                     <pre>{JSON.stringify(poll, null, 2)}</pre>
                 </div>
@@ -145,16 +145,17 @@ function PollDisplay() {
 
         if (!poll) {
             return (
-                <div className="min-h-screen flex items-center justify-center text-2xl text-[#502d0e]">
-                    Loading Poll...
+                <div className="p-12 text-2xl text-blue-800 bg-blue-200 border-4 border-blue-900">
+                    STATUS: Loading Poll Data... (If stuck, check console)
                 </div>
             );
         }
 
         return (
-            <div className="flex-grow w-full relative overflow-visible border-4 border-red-500">
+            <div className="flex-grow w-full relative overflow-visible border-[10px] border-green-500 bg-green-100 p-4">
+                <h2 className="text-black font-bold">Poll Player Container</h2>
                 <ErrorBoundary>
-                    <div className="h-full w-full border-4 border-blue-500">
+                    <div className="h-[500px] w-full border-4 border-blue-500 bg-white">
                         <PollPlayer poll={poll} controlsBehavior="autohide" />
                     </div>
                 </ErrorBoundary>
@@ -163,8 +164,10 @@ function PollDisplay() {
     };
 
     return (
-        <div className="h-screen flex flex-col bg-gray-50 font-sans overflow-hidden">
-            <h1 className="bg-yellow-400 text-black p-2 text-center text-xl font-bold z-[9999]">DEBUG VERSION LOADING...</h1>
+        <div className="min-h-screen flex flex-col bg-gray-50 font-sans border-8 border-purple-500">
+            <h1 className="bg-yellow-400 text-black p-4 text-center text-xl font-bold z-[9999]">
+                DEBUG: Poll={poll ? 'OBJ' : 'NULL'} / {poll?.slug} / Err={poll?.error ? 'YES' : 'NO'}
+            </h1>
             {/* DEBUG OVERLAY */}
             <button
                 onClick={() => window.close()}
