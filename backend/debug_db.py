@@ -21,8 +21,8 @@ cursor.execute("SELECT id, title, slug, is_active, owner_id FROM polls ORDER BY 
 polls = cursor.fetchall()
 
 for p in polls:
-    pid, title, slug, active = p
-    print(f"Poll: {title} ({slug}) [ID: {pid}] Active: {active}")
+    pid, title, slug, active, owner_id = p
+    print(f"Poll: {title} ({slug}) [ID: {pid}] Active: {active} Owner: {owner_id}")
     cursor.execute("SELECT id, text, question_type, \"order\" FROM questions WHERE poll_id = ?", (pid,))
     questions = cursor.fetchall()
     print(f"  Questions ({len(questions)}):")
