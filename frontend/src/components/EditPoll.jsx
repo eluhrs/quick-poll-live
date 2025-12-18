@@ -1,19 +1,20 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import api from '../api';
-import { ArrowLeft, ChevronLeft, Edit, Trash2, GripVertical, Eye, PlusCircle, Plus, Calendar, Save, X, Settings, Check } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, Edit, Trash2, GripVertical, PlusCircle, Plus, Calendar, Save, X, Settings, Check } from 'lucide-react';
 import QuestionForm from './QuestionForm';
 import DeleteModal from './DeleteModal';
 import Header from './Header';
 import { PALETTES } from '../constants/palettes';
 import PollPlayer from './PollPlayer';
 import ColorGeneratorModal from './ColorGeneratorModal';
+import VotingPlayer from './VotingPlayer';
 
 function EditPoll() {
     const { slug } = useParams();
     const navigate = useNavigate();
     const [poll, setPoll] = useState(null);
-    const [activeTab, setActiveTab] = useState('questions'); // 'questions' | 'settings' | 'preview'
+    const [activeTab, setActiveTab] = useState('questions'); // 'questions' | 'settings' | 'voting_preview' | 'results_preview'
 
     // Question State
     const [editingQuestionId, setEditingQuestionId] = useState(null);
@@ -52,7 +53,13 @@ function EditPoll() {
 
             setSettingsForm({
                 title: res.data.title,
-                closes_at: res.data.closes_at ? res.data.closes_at.slice(0, 16) : '',
+                closes_at: (() => {
+                    if (!res.data.closes_at) return '';
+                    const date = new Date(res.data.closes_at);
+                    const offsetMs = date.getTimezoneOffset() * 60000;
+                    const localDate = new Date(date.getTime() - offsetMs);
+                    return localDate.toISOString().slice(0, 16);
+                })(),
                 color_palette: initialPalette,
                 slide_duration: res.data.slide_duration || 3,
                 enable_title_page: res.data.enable_title_page || false
@@ -222,11 +229,18 @@ function EditPoll() {
                             {activeTab === 'settings' && <span className="absolute bottom-[-1px] left-0 w-full h-1 bg-primary rounded-t-md"></span>}
                         </button>
                         <button
-                            onClick={() => setActiveTab('preview')}
-                            className={`pb-3 text-lg font-bold transition-all relative ${activeTab === 'preview' ? 'text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
+                            onClick={() => setActiveTab('voting_preview')}
+                            className={`pb-3 text-lg font-bold transition-all relative ${activeTab === 'voting_preview' ? 'text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
                         >
-                            Preview
-                            {activeTab === 'preview' && <span className="absolute bottom-[-1px] left-0 w-full h-1 bg-primary rounded-t-md"></span>}
+                            Voting Preview
+                            {activeTab === 'voting_preview' && <span className="absolute bottom-[-1px] left-0 w-full h-1 bg-primary rounded-t-md"></span>}
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('results_preview')}
+                            className={`pb-3 text-lg font-bold transition-all relative ${activeTab === 'results_preview' ? 'text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
+                        >
+                            Results Preview
+                            {activeTab === 'results_preview' && <span className="absolute bottom-[-1px] left-0 w-full h-1 bg-primary rounded-t-md"></span>}
                         </button>
                     </div>
 
@@ -296,14 +310,6 @@ function EditPoll() {
                                                     >
                                                         <Edit size={18} />
                                                     </button>
-                                                    <Link
-                                                        to={`/${slug}/view?q=${q.id}`}
-                                                        target="_blank"
-                                                        className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
-                                                        title="View Question"
-                                                    >
-                                                        <Eye size={18} />
-                                                    </Link>
                                                     <button
                                                         onClick={() => setDeleteQuestionId(q.id)}
                                                         className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
@@ -365,7 +371,7 @@ function EditPoll() {
                         </div>
                     </>
                 ) : activeTab === 'settings' ? (
-                    <div className="max-w-3xl mx-auto">
+                    <div className="max-w-4xl mx-auto">
                         <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
                             <div className="bg-secondary px-8 py-6 border-b border-gray-300">
                                 <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
@@ -388,7 +394,7 @@ function EditPoll() {
                                 {/* Date & Duration */}
                                 <div className="flex gap-8 justify-center items-end">
                                     {/* Date Input */}
-                                    <div className="w-64">
+                                    <div className="w-80">
                                         <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Close Date</label>
                                         <div className="flex items-center gap-3">
                                             <button
@@ -397,7 +403,7 @@ function EditPoll() {
                                                 className={`flex items-center gap-2 px-4 py-3 rounded-xl border-2 transition-all font-bold w-full truncate ${settingsForm.closes_at ? 'border-primary text-primary bg-secondary/30' : 'border-gray-200 text-gray-500 hover:border-gray-300 hover:bg-gray-50'}`}
                                             >
                                                 <Calendar size={18} className="flex-shrink-0" />
-                                                <span className="truncate">{settingsForm.closes_at ? new Date(settingsForm.closes_at).toLocaleDateString() : 'Set Date'}</span>
+                                                <span className="truncate">{settingsForm.closes_at ? new Date(settingsForm.closes_at).toLocaleDateString() + ' ' + new Date(settingsForm.closes_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Set Date'}</span>
                                             </button>
                                             {settingsForm.closes_at && (
                                                 <button
@@ -437,7 +443,7 @@ function EditPoll() {
 
                                     {/* Show Title Page Toggle */}
                                     <div className="flex flex-col w-40 items-center">
-                                        <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Show Title</label>
+                                        <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Show Title Page</label>
                                         <div className="flex items-center gap-3 h-[52px]">
                                             <span className={`text-sm font-bold ${!settingsForm.enable_title_page ? 'text-gray-900' : 'text-gray-400'}`}>No</span>
                                             <button
@@ -523,10 +529,22 @@ function EditPoll() {
                             </form>
                         </div>
                     </div>
+                ) : activeTab === 'voting_preview' ? (
+                    <div className="max-w-4xl mx-auto">
+                        <div className="bg-white rounded-xl shadow-lg border-2 border-gray-900 border-opacity-10 overflow-hidden">
+                            {/* Voting Preview */}
+                            <div className="border border-gray-200 rounded-lg p-2 m-4 bg-gray-50/50">
+                                <VotingPlayer poll={poll} isPreview={true} />
+                            </div>
+                            <div className="p-4 bg-gray-50 text-center text-sm text-gray-400">
+                                This is a fully interactive preview of what your voters will see.
+                            </div>
+                        </div>
+                    </div>
                 ) : (
                     <div className="max-w-4xl mx-auto">
                         <div className="bg-white rounded-xl shadow-lg border-2 border-gray-900 border-opacity-10 overflow-hidden">
-                            {/* Preview Container: 1px border is handled by border-opacity-10 combined with standard border width or specific class. User asked for 1px rectangle. standard border is 1px. */}
+                            {/* Results Preview */}
                             <div className="border border-gray-200 rounded-lg p-2 m-4 bg-gray-50/50">
                                 <PollPlayer
                                     poll={poll}
@@ -536,7 +554,7 @@ function EditPoll() {
                                 />
                             </div>
                             <div className="p-4 bg-gray-50 text-center text-sm text-gray-400">
-                                This is a preview of how your poll will appear to participants.
+                                This is a preview of the live results view.
                             </div>
                         </div>
                     </div>
