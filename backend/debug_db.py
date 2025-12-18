@@ -1,17 +1,23 @@
 import sqlite3
 import os
 
-db_path = "/Users/eluhrs/antigravity/mypoll/data/poll.db"
+db_path = "/data/poll.db"
 
 if not os.path.exists(db_path):
-    print("DB file not found!")
+    print(f"DB file not found at {db_path}!")
     exit(1)
 
 conn = sqlite3.connect(db_path)
 cursor = conn.cursor()
 
+print("--- Users ---")
+cursor.execute("SELECT id, username FROM users")
+for u in cursor.fetchall():
+    print(f"User: {u[1]} [ID: {u[0]}]")
+print("")
+
 print("--- Polls ---")
-cursor.execute("SELECT id, title, slug, is_active FROM polls ORDER BY created_at DESC LIMIT 5")
+cursor.execute("SELECT id, title, slug, is_active, owner_id FROM polls ORDER BY created_at DESC LIMIT 5")
 polls = cursor.fetchall()
 
 for p in polls:
