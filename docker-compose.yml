@@ -23,6 +23,7 @@ services:
       context: ./frontend
       args:
         - VITE_API_URL=/api
+        - VITE_ENABLE_DEBUG=${VITE_ENABLE_DEBUG:-false}
     container_name: poll_frontend
     volumes:
       - ./frontend:/app
