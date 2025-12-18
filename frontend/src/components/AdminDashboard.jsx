@@ -104,7 +104,7 @@ function AdminDashboard() {
 
     const fetchPolls = async () => {
         try {
-            const response = await api.get('/polls');
+            const response = await api.get(`/polls?t=${Date.now()}`);
             setPolls(response.data);
         } catch (error) {
             console.error("Failed to fetch polls", error);
