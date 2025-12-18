@@ -129,17 +129,38 @@ function PollDisplay() {
         }
     };
 
-    if (poll?.error) return (
-        <div className="p-8 text-red-600 bg-red-50">
-            <h1 className="text-xl font-bold">Error Loading Poll</h1>
-            <pre>{JSON.stringify(poll, null, 2)}</pre>
-        </div>
-    );
-
-    if (!poll) return <div className="min-h-screen flex items-center justify-center text-2xl text-[#502d0e]">Loading Poll...</div>;
-
     // URL Construction
     const joinUrl = `${window.location.protocol}//${window.location.host}`;
+
+    // Render Logic Helper
+    const renderContent = () => {
+        if (poll?.error) {
+            return (
+                <div className="p-8 text-red-600 bg-red-50">
+                    <h1 className="text-xl font-bold">Error Loading Poll</h1>
+                    <pre>{JSON.stringify(poll, null, 2)}</pre>
+                </div>
+            );
+        }
+
+        if (!poll) {
+            return (
+                <div className="min-h-screen flex items-center justify-center text-2xl text-[#502d0e]">
+                    Loading Poll...
+                </div>
+            );
+        }
+
+        return (
+            <div className="flex-grow w-full relative overflow-visible border-4 border-red-500">
+                <ErrorBoundary>
+                    <div className="h-full w-full border-4 border-blue-500">
+                        <PollPlayer poll={poll} controlsBehavior="autohide" />
+                    </div>
+                </ErrorBoundary>
+            </div>
+        );
+    };
 
     return (
         <div className="h-screen flex flex-col bg-gray-50 font-sans overflow-hidden">
@@ -170,13 +191,7 @@ function PollDisplay() {
             {singleViewMode && renderCloseButton()}
 
             {/* Main Content Area - Full Screen Player */}
-            <div className="flex-grow w-full relative overflow-hidden border-4 border-red-500">
-                <ErrorBoundary>
-                    <div className="h-full w-full border-4 border-blue-500">
-                        <PollPlayer poll={poll} controlsBehavior="autohide" />
-                    </div>
-                </ErrorBoundary>
-            </div>
+            {renderContent()}
 
             {/* Footer Bar - Rebranded & Reorganized */}
             <div className="bg-white text-[#502d0e] h-24 flex items-center justify-between px-8 md:px-12 shadow-[0_-4px_20px_rgba(0,0,0,0.1)] z-30 flex-shrink-0 border-t-8 border-[#502d0e]">
@@ -203,10 +218,10 @@ function PollDisplay() {
                 <div className="flex items-center gap-6">
                     <div className="text-right hidden md:block">
                         <div className="text-[#502d0e]/60 uppercase tracking-widest text-xs font-bold">Poll Code</div>
-                        <div className="font-mono text-xl font-bold text-[#502d0e]">{poll.slug}</div>
+                        <div className="font-mono text-xl font-bold text-[#502d0e]">{poll?.slug || '...'}</div>
                     </div>
                     <div className="bg-white p-1 rounded-lg border border-gray-200 shadow-sm flex-shrink-0">
-                        <QRCodeSVG value={`${joinUrl}/${slug}/vote`} size={64} fgColor="#502d0e" />
+                        <QRCodeSVG value={`${joinUrl}/${poll?.slug || 'loading'}/vote`} size={64} fgColor="#502d0e" />
                     </div>
                 </div>
             </div>
