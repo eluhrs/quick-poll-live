@@ -154,12 +154,24 @@ function PollDisplay() {
 
     return (
         <div className="h-screen flex flex-col bg-gray-50 font-sans overflow-hidden">
+            {/* DEBUG OVERLAY */}
+            <div className="absolute top-2 right-2 bg-black/80 text-white p-2 text-xs font-mono z-50 pointer-events-none max-w-sm overflow-auto max-h-48 opacity-50 hover:opacity-100">
+                <p>Poll Loaded: {poll ? 'Yes' : 'No'}</p>
+                <p>Questions: {poll?.questions?.length}</p>
+                <p>Title: {poll?.title}</p>
+                <p>Slug: {poll?.slug}</p>
+
+                {/* Check PollPlayer Container Height */}
+            </div>
+
             {singleViewMode && renderCloseButton()}
 
             {/* Main Content Area - Full Screen Player */}
-            <div className="flex-grow w-full relative overflow-hidden">
+            <div className="flex-grow w-full relative overflow-hidden border-4 border-red-500">
                 <ErrorBoundary>
-                    <PollPlayer poll={poll} controlsBehavior="autohide" />
+                    <div className="h-full w-full border-4 border-blue-500">
+                        <PollPlayer poll={poll} controlsBehavior="autohide" />
+                    </div>
                 </ErrorBoundary>
             </div>
 
