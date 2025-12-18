@@ -63,8 +63,10 @@ function PollDisplay() {
         const connect = () => {
             if (!isAlive) return;
 
-            console.log(`[WS] Connecting to ${slug}...`);
-            ws = new WebSocket(`ws://${location.hostname}:8000/ws/${slug}`);
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}/ws/${slug}`;
+            console.log(`[WS] Connecting to ${wsUrl}...`);
+            ws = new WebSocket(wsUrl);
 
             ws.onopen = () => {
                 console.log("[WS] Connected");
