@@ -128,6 +128,13 @@ function AdminDashboard() {
             <div className="max-w-7xl mx-auto">
                 <Header />
 
+                {/* EMERGENCY DEBUG PANEL */}
+                <div className="bg-red-100 p-4 mb-4 rounded border border-red-400 text-xs font-mono">
+                    <p><strong>DEBUG INFO:</strong></p>
+                    <p>Polls Count: {polls.length}</p>
+                    <p>Raw Data: {JSON.stringify(polls)}</p>
+                </div>
+
                 {/* Tabbed Interface */}
                 <div>
                     {/* Tab Nav & Action */}
