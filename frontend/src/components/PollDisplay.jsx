@@ -24,7 +24,7 @@ class ErrorBoundary extends React.Component {
     render() {
         if (this.state.hasError) {
             return (
-                <div className="p-8 text-red-600 bg-red-50 h-full overflow-auto">
+                <div className="p-8 text-red-600 bg-red-50 h-full overflow-auto text-left">
                     <h1 className="text-xl font-bold mb-4">Display Error</h1>
                     <p className="font-bold">{this.state.error?.toString()}</p>
                     <pre className="text-xs mt-2">{this.state.errorInfo?.componentStack}</pre>
@@ -39,16 +39,8 @@ function PollDisplay() {
     const { slug } = useParams();
     const [poll, setPoll] = useState(null);
     const [singleViewMode, setSingleViewMode] = useState(false);
-    const [qrExpanded, setQrExpanded] = useState(false);
 
-    useEffect(() => {
-        const params = new URLSearchParams(window.location.search);
-        const qId = params.get('q');
-        if (qId && poll) {
-            setSingleViewMode(true);
-        }
-    }, [poll]);
-
+    // Auto-refresh timer reference
     useEffect(() => {
         if (poll) {
             document.title = 'Quick Poll Live: Results';
@@ -63,8 +55,11 @@ function PollDisplay() {
         const connect = () => {
             if (!isAlive) return;
 
+            // DYNAMIC PROTOCOL & HOST (Critical for Mixed Content Fix)
             const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            // Use window.location.host to respect the Proxy Port (443 or whatever URL calls it)
             const wsUrl = `${protocol}//${window.location.host}/ws/${slug}`;
+
             console.log(`[WS] Connecting to ${wsUrl}...`);
             ws = new WebSocket(wsUrl);
 
@@ -94,7 +89,7 @@ function PollDisplay() {
 
             ws.onerror = (err) => {
                 console.error("[WS] Error:", err);
-                ws.close(); // Trigger onclose
+                ws.close();
             };
         };
 
@@ -108,15 +103,11 @@ function PollDisplay() {
     }, [slug]);
 
     const fetchPoll = async () => {
-        // Add timestamp to prevent caching
-        console.log(`Fetching poll: /polls/${slug}`);
         try {
-            // Add timestamp to prevent caching
-            console.log(`Fetching poll: /polls/${slug}`);
+            // Timestamp to prevent caching
             const res = await api.get(`/polls/${slug}?t=${Date.now()}`);
             console.log("Poll Data:", res.data);
 
-            // Validate Data
             if (!res.data || typeof res.data !== 'object') {
                 throw new Error("Invalid Data Received");
             }
@@ -129,77 +120,58 @@ function PollDisplay() {
         }
     };
 
-    // URL Construction
+    // URL Construction for QR
     const joinUrl = `${window.location.protocol}//${window.location.host}`;
 
-    // Render Logic Helper
-    const renderContent = () => {
-        if (poll?.error) {
-            return (
-                <div className="p-8 text-red-600 bg-red-50 border-4 border-red-900">
-                    <h1 className="text-xl font-bold">Error Loading Poll</h1>
-                    <pre>{JSON.stringify(poll, null, 2)}</pre>
-                </div>
-            );
-        }
-
-        if (!poll) {
-            return (
-                <div className="p-12 text-2xl text-blue-800 bg-blue-200 border-4 border-blue-900">
-                    STATUS: Loading Poll Data... (If stuck, check console)
-                </div>
-            );
-        }
-
-        return (
-            <div className="flex-grow w-full relative overflow-visible border-[10px] border-green-500 bg-green-100 p-4">
-                <h2 className="text-black font-bold text-lg mb-4">SUCCESS STATE RENDERED</h2>
-                <div className="p-4 bg-white border border-black mb-4">
-                    <p><strong>Debug Data:</strong></p>
-                    <pre className="text-xs">{JSON.stringify(poll, null, 2)}</pre>
-                </div>
-
-                {/* TEMPORARILY REMOVED POLLPLAYER TO ISOLATE RENDERING */}
-                {/* <PollPlayer poll={poll} controlsBehavior="autohide" /> */}
-                <div className="h-64 bg-blue-300 flex items-center justify-center text-2xl font-bold border-4 border-blue-600">
-                    PLAYER PLACEHOLDER (If you see this, Layout is OK)
-                </div>
-            </div>
-        );
-    };
-
-    return (
-        <div className="min-h-screen flex flex-col bg-gray-50 font-sans border-8 border-purple-500">
-            <h1 className="bg-yellow-400 text-black p-4 text-center text-xl font-bold z-[9999]">
-                DEBUG: Poll={poll ? 'OBJ' : 'NULL'} / Qs={poll?.questions?.length || 0} / Err={poll?.error ? 'YES' : 'NO'}
-            </h1>
-            {/* DEBUG OVERLAY */}
-            <button
-                onClick={() => window.close()}
-                className="bg-white/80 p-2 rounded-full shadow hover:bg-white text-gray-600 transition"
-                title="Close View"
-            >
-                <ChevronLeft size={32} />
-            </button>
-        </div>
+    // Helper: Close Button Logic
+    const renderCloseButton = () => (
+        <button
+            onClick={() => setSingleViewMode(false)}
+            className="fixed top-4 left-4 z-50 bg-white/90 p-2 rounded-full shadow hover:bg-white text-gray-800 transition"
+            title="Back to Overview"
+        >
+            <ChevronLeft size={32} />
+        </button>
     );
 
+    // 1. Loading State
+    if (!poll && !poll?.error) {
+        return (
+            <div className="h-screen w-screen flex items-center justify-center bg-gray-50">
+                <div className="text-2xl font-bold text-gray-400 animate-pulse">Loading Poll...</div>
+            </div>
+        );
+    }
+
+    // 2. Error State
+    if (poll?.error) {
+        return (
+            <div className="h-screen w-screen flex flex-col items-center justify-center bg-red-50 text-red-600 p-8">
+                <h1 className="text-3xl font-bold mb-4">Error Loading Poll</h1>
+                <p className="text-xl">{poll.error}</p>
+                <button
+                    onClick={() => window.location.reload()}
+                    className="mt-8 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+                >
+                    Retry
+                </button>
+            </div>
+        );
+    }
+
+    // 3. Success State (Full Layout)
     return (
         <div className="h-screen flex flex-col bg-gray-50 font-sans overflow-hidden">
-            {/* DEBUG OVERLAY */}
-            <div className="absolute top-2 right-2 bg-black/80 text-white p-2 text-xs font-mono z-50 pointer-events-none max-w-sm overflow-auto max-h-48 opacity-50 hover:opacity-100">
-                <p>Poll Loaded: {poll ? 'Yes' : 'No'}</p>
-                <p>Questions: {poll?.questions?.length}</p>
-                <p>Title: {poll?.title}</p>
-                <p>Slug: {poll?.slug}</p>
 
-                {/* Check PollPlayer Container Height */}
-            </div>
-
+            {/* Conditional Close Button */}
             {singleViewMode && renderCloseButton()}
 
             {/* Main Content Area - Full Screen Player */}
-            {renderContent()}
+            <div className="flex-grow w-full relative overflow-hidden">
+                <ErrorBoundary>
+                    <PollPlayer poll={poll} controlsBehavior="autohide" />
+                </ErrorBoundary>
+            </div>
 
             {/* Footer Bar - Rebranded & Reorganized */}
             <div className="bg-white text-[#502d0e] h-24 flex items-center justify-between px-8 md:px-12 shadow-[0_-4px_20px_rgba(0,0,0,0.1)] z-30 flex-shrink-0 border-t-8 border-[#502d0e]">
