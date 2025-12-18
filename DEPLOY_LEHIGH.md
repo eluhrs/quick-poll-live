@@ -21,17 +21,16 @@ cp example.env .env
 nano .env
 ```
 
-**Content of `.env`:**
+**Configuration Steps (.env):**
+1.  **Generate Secret Key**: Run `python3 -c "import secrets; print(secrets.token_hex(32))"` and paste the result into `SECRET_KEY`.
+2.  **Set Origins**: update `ALLOWED_ORIGINS` to include your production URL.
+3.  **Set Port**: Ensure `APP_PORT` matches your assigned port (10001).
+
+*Example Final `.env`:*
 ```env
-# Critical Security Key
-SECRET_KEY=your_generated_safe_hex_key_here
-
-# Frontend Configuration
-APP_PORT=10001  # <--- CRITICAL: Set to 10001 per requirement
-
-# Allowed Origins (CORS)
-# MUST include the production domain
+SECRET_KEY=a1b2c3d4e5...
 ALLOWED_ORIGINS=https://livepoll.lehigh.edu,http://localhost:8081
+APP_PORT=10001
 ```
 
 ### 2. Initialize Data Directory
