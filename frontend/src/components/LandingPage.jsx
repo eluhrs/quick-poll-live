@@ -7,6 +7,7 @@ import api from '../api';
 
 function LandingPage() {
     const [code, setCode] = useState('');
+    const [joinMode, setJoinMode] = useState('vote'); // 'vote' or 'results'
     const [isAdminLogin, setIsAdminLogin] = useState(false);
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
@@ -28,7 +29,12 @@ function LandingPage() {
         e.preventDefault();
         if (!code) return;
         const slug = code.trim();
-        navigate(`/poll/${slug}`);
+
+        if (joinMode === 'results') {
+            navigate(`/${slug}/results`);
+        } else {
+            navigate(`/${slug}/vote`); // Direct to /vote for explicitly casting a vote
+        }
     };
 
     const handleLogin = async (e) => {
@@ -68,21 +74,49 @@ function LandingPage() {
                             <p className="text-gray-600 text-lg mt-2">Enter a poll code to participate</p>
                         </div>
 
-                        <form onSubmit={handleJoin} className="space-y-6">
-                            <input
-                                type="text"
-                                value={code}
-                                onChange={(e) => setCode(e.target.value)}
-                                placeholder="Enter 6-character code"
-                                className="w-full px-6 py-4 rounded-lg border-2 border-gray-300 text-center text-xl font-mono tracking-widest focus:outline-none focus:border-primary focus:ring-0 shadow-sm bg-white"
-                                maxLength={6}
-                            />
-                            <button
-                                type="submit"
-                                className="w-full bg-primary text-white font-bold py-4 rounded-lg hover:bg-primary-hover transition transform active:scale-95 flex items-center justify-center gap-2"
-                            >
-                                Join Quick Poll <ArrowRight size={20} />
-                            </button>
+                        <form onSubmit={handleJoin} className="space-y-4">
+
+                            {/* Option 3: Mode Toggle (Segmented Control) */}
+                            {/* NOTE: User may revert. Previous was 'border' (1px). Current is 'border-2' to match input. */}
+                            <div className="flex bg-gray-100 border-2 border-gray-300 p-1.5 rounded-lg">
+                                <button
+                                    type="button"
+                                    onClick={() => setJoinMode('vote')}
+                                    className={`flex-1 py-1.5 px-3 rounded-md text-sm font-bold transition-all ${joinMode === 'vote'
+                                        ? 'bg-primary shadow-sm text-white'
+                                        : 'text-gray-400 hover:text-gray-600'
+                                        }`}
+                                >
+                                    Cast VOTE
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setJoinMode('results')}
+                                    className={`flex-1 py-1.5 px-3 rounded-md text-sm font-bold transition-all ${joinMode === 'results'
+                                        ? 'bg-primary shadow-sm text-white'
+                                        : 'text-gray-400 hover:text-gray-600'
+                                        }`}
+                                >
+                                    View RESULTS
+                                </button>
+                            </div>
+
+                            <div className="flex shadow-sm rounded-lg overflow-hidden border-2 border-gray-300 focus-within:border-primary transition-colors bg-white">
+                                <input
+                                    type="text"
+                                    value={code}
+                                    onChange={(e) => setCode(e.target.value)}
+                                    placeholder="ENTER CODE"
+                                    className="w-full px-6 py-4 text-xl font-mono tracking-widest focus:outline-none focus:ring-0 uppercase font-bold border-0 bg-transparent placeholder-gray-400"
+                                    maxLength={32}
+                                />
+                                <button
+                                    type="submit"
+                                    className="bg-primary text-white font-bold px-8 hover:bg-primary-hover transition transform active:scale-95 flex items-center justify-center"
+                                >
+                                    <span className="text-xl">GO</span>
+                                </button>
+                            </div>
                         </form>
                     </>
                 ) : (

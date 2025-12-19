@@ -9,6 +9,7 @@ import VotingView from './components/VotingView';
 import Scratchpad from './components/Scratchpad';
 import ScratchpadButtons from './components/ScratchpadButtons';
 import ScratchpadTabset from './components/ScratchpadTabset';
+import LandingOptions from './components/ScratchpadLandingOptions';
 
 function PrivateRoute({ children }) {
     const token = localStorage.getItem('token');
@@ -86,6 +87,7 @@ function App() {
                     <Route path="/scratchpad" element={<Scratchpad />} />
                     <Route path="/scratchpad/buttons" element={<ScratchpadButtons />} />
                     <Route path="/scratchpad/tabset" element={<ScratchpadTabset />} />
+                    <Route path="/scratchpad/landing-options" element={<LandingOptions />} />
 
                     {/* 404 - Redirect to Home */}
                     <Route path="*" element={<Navigate to="/" replace />} />
