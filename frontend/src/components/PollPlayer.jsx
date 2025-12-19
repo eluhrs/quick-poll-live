@@ -305,7 +305,6 @@ function PollPlayer({ poll, activePalette, enableTitlePage, isPreview = false, c
                             content={<CustomTreemapContent colors={COLORS} />}
                             isAnimationActive={false}
                         >
-                            <Tooltip />
                         </Treemap>
                     </ResponsiveContainer>
                 </div>

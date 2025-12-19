@@ -31,9 +31,9 @@ function LandingPage() {
         const slug = code.trim();
 
         if (joinMode === 'results') {
-            navigate(`/${slug}/results`);
+            navigate(`/${slug}/results${window.location.search}`);
         } else {
-            navigate(`/${slug}/vote`); // Direct to /vote for explicitly casting a vote
+            navigate(`/${slug}/vote${window.location.search}`); // Direct to /vote for explicitly casting a vote
         }
     };
 

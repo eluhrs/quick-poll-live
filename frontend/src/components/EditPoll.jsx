@@ -62,7 +62,7 @@ function EditPoll() {
                     return localDate.toISOString().slice(0, 16);
                 })(),
                 color_palette: initialPalette,
-                slide_duration: res.data.slide_duration || 3,
+                slide_duration: res.data.slide_duration || 10,
                 enable_title_page: res.data.enable_title_page || false
             });
             if (initialCustom) {
@@ -435,7 +435,7 @@ function EditPoll() {
                                                 min="1"
                                                 max="60"
                                                 value={settingsForm.slide_duration}
-                                                onChange={(e) => setSettingsForm({ ...settingsForm, slide_duration: parseInt(e.target.value) || 3 })}
+                                                onChange={(e) => setSettingsForm({ ...settingsForm, slide_duration: parseInt(e.target.value) || 10 })}
                                                 className="w-full px-3 py-3 pr-8 border-2 border-gray-200 rounded-xl focus:border-primary focus:ring-0 outline-none transition-colors text-lg font-bold text-center"
                                             />
                                             <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold pointer-events-none">s</span>

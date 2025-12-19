@@ -20,6 +20,19 @@ function VotingView() {
         try {
             const res = await api.get(`/polls/${slug}`);
             setPoll(res.data);
+
+            // SECURITY: Check LocalStorage Flag
+            // EXEMPTION: Localhost or ?[VITE_TEST_FLAG]=true bypasses this check.
+            const testFlag = import.meta.env.VITE_TEST_FLAG || 'test';
+            const isDev = window.location.hostname === 'localhost' || new URLSearchParams(window.location.search).get(testFlag) === 'true';
+
+            const hasVoted = localStorage.getItem(`qp_x_sess_${res.data.id}`);
+            if (hasVoted && !isDev) {
+                // Optional: We could show a toast here, but user asked for direct redirect.
+                // Using window.location to ensure clean state or navigate
+                // navigate(`/${slug}/results`); // We need useNavigate
+                window.location.href = `/${slug}/results`;
+            }
         } catch (err) {
             console.error(err);
             setError("Poll not found.");
@@ -40,6 +53,10 @@ function VotingView() {
             });
 
             await Promise.all(votePromises);
+
+            // SECURITY: Set LocalStorage Flag (Obfuscated)
+            localStorage.setItem(`qp_x_sess_${poll.id}`, Date.now().toString());
+
             setIsFinished(true);
         } catch (err) {
             console.error(err);

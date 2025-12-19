@@ -48,9 +48,30 @@ function VotingPlayer({ poll, onSubmit, isPreview = false }) {
         }
     }, [timeLeft, isPlaying, isPreview, poll.slide_duration]);
 
+    // --- BOT PROTECTION ---
+    const [honey, setHoney] = useState('');
+    const mountedAt = useRef(Date.now());
+
     const handleNext = (force = false) => {
         // Validation (skipped if force=true which is used by auto-play or scrubbing)
         const currentQ = poll.questions[currentQIndex];
+        const testFlag = import.meta.env.VITE_TEST_FLAG || 'test';
+        const isDev = window.location.hostname === 'localhost' || new URLSearchParams(window.location.search).get(testFlag) === 'true';
+
+        // BOT CHECK 1: Honeypot
+        // If the hidden field has any value, it's a bot.
+        if (!force && !isDev && honey) {
+            console.warn("Honeypot triggered.");
+            // Silent fail or fake success? Let's simply return to frustrate them.
+            return;
+        }
+
+        // BOT CHECK 2: Speed Limit
+        // If trying to submit within 1 second of loading, it's inhumane.
+        if (!force && !isPreview && !isDev && (Date.now() - mountedAt.current < 1000)) {
+            console.warn("Speed limit triggered.");
+            return;
+        }
 
         // If not forced (manual interaction) and not just "scrubbing" via arrows
         if (!force && !isPreview && (!answers[currentQ.id] || (answers[currentQ.id].isText && !answers[currentQ.id].value.trim()))) {
@@ -113,6 +134,17 @@ function VotingPlayer({ poll, onSubmit, isPreview = false }) {
                         This poll is closed.
                     </div>
                 )}
+
+                {/* BOT HONEYPOT (Hidden) */}
+                <input
+                    type="text"
+                    name="confirm_email"
+                    value={honey}
+                    onChange={(e) => setHoney(e.target.value)}
+                    style={{ opacity: 0, position: 'absolute', left: '-9999px', height: 0, width: 0, zIndex: -1 }}
+                    tabIndex="-1"
+                    autoComplete="off"
+                />
 
                 {/* Question Card */}
                 {question && (
