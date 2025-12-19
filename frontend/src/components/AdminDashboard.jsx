@@ -4,8 +4,7 @@ import api from '../api';
 import { PlusCircle, Archive, Share2, Check, Edit, Trash2, RotateCcw } from 'lucide-react';
 import DeleteModal from './DeleteModal';
 import Header from './Header';
-import { driver } from 'driver.js';
-import 'driver.js/dist/driver.css';
+
 
 function AdminDashboard() {
     const [polls, setPolls] = useState([]);
@@ -85,22 +84,9 @@ function AdminDashboard() {
     }, []);
 
     useEffect(() => {
-        if (!loading) {
-            const tourSeen = localStorage.getItem('tour_seen');
-            if (!tourSeen) {
-                const driverObj = driver({
-                    showProgress: true,
-                    steps: [
-                        { element: '#create-btn', popover: { title: 'Create Poll', description: 'Start here to create your first poll.' } },
-                        { element: '#active-polls', popover: { title: 'Active Polls', description: 'Your running polls will appear here.' } },
-                        { element: '#archived-polls', popover: { title: 'Archived Polls', description: 'Closed polls are stored here for reference.' } }
-                    ]
-                });
-                driverObj.drive();
-                localStorage.setItem('tour_seen', 'true');
-            }
-        }
-    }, [loading]);
+        document.title = 'Quick Poll Live: Dashboard';
+        fetchPolls();
+    }, []);
 
     const fetchPolls = async () => {
         try {
