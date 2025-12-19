@@ -55,7 +55,7 @@ function VotingPlayer({ poll, onSubmit, isPreview = false }) {
     const handleNext = (force = false) => {
         // Validation (skipped if force=true which is used by auto-play or scrubbing)
         const currentQ = poll.questions[currentQIndex];
-        const testFlag = import.meta.env.VITE_TEST_FLAG || 'test';
+        const testFlag = import.meta.env.VITE_TEST_FLAG;
         const isDev = window.location.hostname === 'localhost' || new URLSearchParams(window.location.search).get(testFlag) === 'true';
 
         // BOT CHECK 1: Honeypot

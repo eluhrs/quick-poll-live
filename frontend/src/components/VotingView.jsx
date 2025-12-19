@@ -23,7 +23,7 @@ function VotingView() {
 
             // SECURITY: Check LocalStorage Flag
             // EXEMPTION: Localhost or ?[VITE_TEST_FLAG]=true bypasses this check.
-            const testFlag = import.meta.env.VITE_TEST_FLAG || 'test';
+            const testFlag = import.meta.env.VITE_TEST_FLAG;
             const isDev = window.location.hostname === 'localhost' || new URLSearchParams(window.location.search).get(testFlag) === 'true';
 
             const hasVoted = localStorage.getItem(`qp_x_sess_${res.data.id}`);
