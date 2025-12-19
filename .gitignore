@@ -12,3 +12,4 @@ build/
 .vscode/
 coverage/
 htmlcov/
+DEPLOY_LEHIGH.md
