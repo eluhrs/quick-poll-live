@@ -124,7 +124,7 @@ function PollPlayer({ poll, activePalette, enableTitlePage, isPreview = false, c
 
     const renderVisualization = () => {
         const visType = question.visualization_type || 'bar';
-        const heightClass = isPreview ? "h-[300px]" : "h-full min-h-[400px]";
+        const heightClass = "h-full min-h-[400px]";
         const fontSize = isPreview ? 12 : 18;
         const axisColor = "#374151";
 

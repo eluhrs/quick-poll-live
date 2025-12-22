@@ -535,30 +535,55 @@ function EditPoll() {
                     </div>
                 ) : activeTab === 'voting_preview' ? (
                     <div className="max-w-4xl mx-auto">
-                        <div className="bg-white rounded-xl shadow-lg border-2 border-gray-900 border-opacity-10 overflow-hidden">
-                            {/* Voting Preview */}
-                            <div className="border border-gray-200 rounded-lg p-2 m-4 bg-gray-50/50">
-                                <VotingPlayer poll={poll} isPreview={true} />
+                        <div className="flex justify-end mb-4">
+                            <a
+                                href={`/poll/${poll.slug}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-2 text-primary font-bold hover:underline"
+                            >
+                                <Play size={16} /> Open Voting Page
+                            </a>
+                        </div>
+                        <div className="bg-white rounded-xl shadow-lg border-2 border-gray-900 border-opacity-10 overflow-hidden relative">
+                            {/* Scaled Preview Wrapper */}
+                            <div className="w-full h-[600px] bg-gray-100 flex items-center justify-center overflow-hidden relative">
+                                <div className="transform scale-[0.8] origin-center w-full max-w-md">
+                                    <VotingPlayer poll={poll} isPreview={true} />
+                                </div>
                             </div>
-                            <div className="p-4 bg-gray-50 text-center text-sm text-gray-400">
-                                This is a fully interactive preview of what your voters will see.
+                            <div className="p-4 bg-gray-50 text-center text-sm text-gray-400 border-t border-gray-200">
+                                This is a scaled preview.
                             </div>
                         </div>
                     </div>
                 ) : (
                     <div className="max-w-4xl mx-auto">
+                        <div className="flex justify-end mb-4">
+                            <a
+                                href={`/poll/${poll.slug}/results`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-2 text-primary font-bold hover:underline"
+                            >
+                                <Play size={16} /> Open Results Board
+                            </a>
+                        </div>
                         <div className="bg-white rounded-xl shadow-lg border-2 border-gray-900 border-opacity-10 overflow-hidden">
-                            {/* Results Preview */}
-                            <div className="border border-gray-200 rounded-lg p-2 m-4 bg-gray-50/50">
-                                <PollPlayer
-                                    poll={poll}
-                                    activePalette={settingsForm.color_palette}
-                                    enableTitlePage={settingsForm.enable_title_page}
-                                    isPreview={true}
-                                />
+                            {/* Scaled Preview Wrapper for Results - Needs to mimic 16:9 Aspect Ratio */}
+                            <div className="w-full aspect-video bg-gray-900 relative overflow-hidden group">
+                                <div className="absolute inset-0 transform scale-[0.6] origin-top-left w-[166.66%] h-[166.66%]">
+                                    <PollPlayer
+                                        poll={poll}
+                                        activePalette={settingsForm.color_palette}
+                                        enableTitlePage={settingsForm.enable_title_page}
+                                        isPreview={true}
+                                        controlsBehavior="visible"
+                                    />
+                                </div>
                             </div>
-                            <div className="p-4 bg-gray-50 text-center text-sm text-gray-400">
-                                This is a preview of the live results view.
+                            <div className="p-4 bg-gray-50 text-center text-sm text-gray-400 border-t border-gray-200">
+                                This is a 60% scale preview of the big screen experience.
                             </div>
                         </div>
                     </div>

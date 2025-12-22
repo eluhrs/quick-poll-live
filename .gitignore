@@ -14,3 +14,4 @@ coverage/
 htmlcov/
 DEPLOY_LEHIGH.md
 SECURITY_LEHIGH.md
+create_liberty_poll.py
