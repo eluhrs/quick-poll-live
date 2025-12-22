@@ -206,20 +206,21 @@ def update_question(slug: str, question_id: int, question_update: schemas.Questi
     # Non-destructive Option Update
     # 1. Fetch existing options
     existing_options = db.query(models.Option).filter(models.Option.question_id == db_question.id).all()
-    existing_map = {opt.text: opt for opt in existing_options}
+    existing_map = {opt.id: opt for opt in existing_options}
     
     # 2. Track which existing IDs are kept
     kept_ids = set()
     
     # 3. Iterate new options
     for opt_create in question_update.options:
-        text = opt_create.text
-        if text in existing_map:
-            # Keep existing (preserve ID and Votes)
-            kept_ids.add(existing_map[text].id)
+        # If ID provided and valid, update it
+        if opt_create.id and opt_create.id in existing_map:
+            existing_opt = existing_map[opt_create.id]
+            existing_opt.text = opt_create.text
+            kept_ids.add(opt_create.id)
         else:
             # Create new
-            new_opt = models.Option(question_id=db_question.id, text=text)
+            new_opt = models.Option(question_id=db_question.id, text=opt_create.text)
             db.add(new_opt)
             
     # 4. Delete removed options

@@ -24,7 +24,7 @@ def create_liberty_poll(target_username="admin"):
 
         # 2. Create Poll
         poll_title = "What Does Liberty Mean to You?"
-        slug = f"liberty-{secrets.token_hex(2)}" # Unique slug
+        slug = secrets.token_hex(3) # Standard 6-char short hash
         # Set close date to 30 days from now
         closes_at = datetime.datetime.utcnow() + datetime.timedelta(days=30)
         

@@ -103,7 +103,10 @@ function EditPoll() {
     };
 
     const handleSaveQuestion = async (questionData, isUpdate = false) => {
-        const validOptions = questionData.options.filter(o => o && o.trim() !== '').map(text => ({ text }));
+        // Prepare options: preserve ID if present, ensure text is valid
+        const validOptions = questionData.options
+            .filter(o => o.text && o.text.trim() !== '')
+            .map(o => ({ id: o.id, text: o.text }));
         const payload = {
             text: questionData.text,
             question_type: questionData.type,
@@ -329,7 +332,7 @@ function EditPoll() {
                                                                 text: q.text,
                                                                 type: q.question_type,
                                                                 visualization_type: q.visualization_type,
-                                                                options: q.options.map(o => o.text)
+                                                                options: q.options.map(o => ({ id: o.id, text: o.text }))
                                                             }}
                                                             onSubmit={(data) => handleSaveQuestion(data, true)}
                                                             onCancel={() => setEditingQuestionId(null)}

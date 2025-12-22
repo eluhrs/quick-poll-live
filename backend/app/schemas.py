@@ -19,7 +19,7 @@ class OptionBase(BaseModel):
     text: str
 
 class OptionCreate(OptionBase):
-    pass
+    id: Optional[int] = None
 
 class Option(OptionBase):
     id: int

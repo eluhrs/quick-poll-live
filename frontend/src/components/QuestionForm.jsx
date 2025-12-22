@@ -5,7 +5,7 @@ function QuestionForm({ initialData, onSubmit, onCancel, confirmLabel = "Add Que
     const defaultQuestion = {
         text: '',
         type: 'multiple_choice',
-        options: ['', ''],
+        options: [{ text: '' }, { text: '' }],
         visualization_type: 'bar'
     };
 
@@ -14,21 +14,26 @@ function QuestionForm({ initialData, onSubmit, onCancel, confirmLabel = "Add Que
     // Update local state if initialData changes (e.g. switching questions)
     useEffect(() => {
         if (initialData) {
+            // Ensure options are normalized to objects
+            const normOptions = (initialData.options && initialData.options.length > 0)
+                ? initialData.options.map(o => (typeof o === 'string' ? { text: o } : o))
+                : [{ text: '' }, { text: '' }];
+
             setQuestion({
                 ...initialData,
-                options: initialData.options && initialData.options.length > 0 ? initialData.options : ['', '']
+                options: normOptions
             });
         }
     }, [initialData]);
 
     const handleOptionChange = (idx, val) => {
         const newOpts = [...question.options];
-        newOpts[idx] = val;
+        newOpts[idx] = { ...newOpts[idx], text: val };
         setQuestion({ ...question, options: newOpts });
     };
 
     const addOptionField = () => {
-        setQuestion({ ...question, options: [...question.options, ''] });
+        setQuestion({ ...question, options: [...question.options, { text: '' }] });
     };
 
     const removeOptionField = (idx) => {
@@ -117,7 +122,7 @@ function QuestionForm({ initialData, onSubmit, onCancel, confirmLabel = "Add Que
                             <input
                                 className="flex-grow px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                                 placeholder={`Option ${idx + 1}`}
-                                value={opt}
+                                value={opt.text || ''}
                                 onChange={e => handleOptionChange(idx, e.target.value)}
                             />
                             {question.options.length > 2 && (
