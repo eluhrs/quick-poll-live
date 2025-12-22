@@ -186,7 +186,6 @@ function PollPlayer({ poll, activePalette, enableTitlePage, isPreview = false, c
                             <Pie data={data} cx="50%" cy="50%" labelLine={!isPreview} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} outerRadius={isPreview ? 80 : 200} fill="#8884d8" dataKey="votes" isAnimationActive={false}>
                                 {data.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
                             </Pie>
-                            <Legend iconSize={isPreview ? 10 : 20} wrapperStyle={{ fontSize: isPreview ? '0.8rem' : '1.2rem', color: axisColor }} />
                         </PieChart>
                     </ResponsiveContainer>
                 </div>
@@ -208,7 +207,7 @@ function PollPlayer({ poll, activePalette, enableTitlePage, isPreview = false, c
             return (
                 <div className={`${heightClass} w-full`}>
                     <ResponsiveContainer width="100%" height="100%">
-                        <RadarChart cx="50%" cy="60%" outerRadius="90%" data={data}>
+                        <RadarChart cx="50%" cy="45%" outerRadius="90%" data={data}>
                             <PolarGrid stroke="#9ca3af" />
                             <PolarAngleAxis dataKey="name" tick={{ fill: axisColor, fontSize: fontSize, fontWeight: 'bold' }} />
                             <PolarRadiusAxis angle={30} domain={[0, 'auto']} stroke={axisColor} />
@@ -238,7 +237,6 @@ function PollPlayer({ poll, activePalette, enableTitlePage, isPreview = false, c
                             <Pie data={data} cx="50%" cy="50%" innerRadius={isPreview ? 40 : 100} outerRadius={isPreview ? 80 : 200} labelLine={!isPreview} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} fill="#8884d8" dataKey="votes" isAnimationActive={false}>
                                 {data.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
                             </Pie>
-                            <Legend iconSize={isPreview ? 10 : 20} wrapperStyle={{ fontSize: isPreview ? '0.8rem' : '1.2rem', color: axisColor }} />
                         </PieChart>
                     </ResponsiveContainer>
                 </div>
