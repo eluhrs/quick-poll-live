@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { ArrowRight, ArrowLeft, Play, Pause, ChevronLeft, ChevronRight } from 'lucide-react';
 
 function VotingPlayer({ poll, onSubmit, isPreview = false }) {
