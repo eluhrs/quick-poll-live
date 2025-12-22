@@ -207,7 +207,7 @@ function PollPlayer({ poll, activePalette, enableTitlePage, isPreview = false, c
             return (
                 <div className={`${heightClass} w-full`}>
                     <ResponsiveContainer width="100%" height="100%">
-                        <RadarChart cx="50%" cy="45%" outerRadius="90%" data={data}>
+                        <RadarChart cx="50%" cy="45%" outerRadius="70%" data={data}>
                             <PolarGrid stroke="#9ca3af" />
                             <PolarAngleAxis dataKey="name" tick={{ fill: axisColor, fontSize: fontSize, fontWeight: 'bold' }} />
                             <PolarRadiusAxis angle={30} domain={[0, 'auto']} stroke={axisColor} />
