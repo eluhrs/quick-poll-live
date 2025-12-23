@@ -35,7 +35,7 @@ function VotingView() {
             }
         } catch (err) {
             console.error(err);
-            setError("Poll not found.");
+            setError(`Poll not found: "${slug}"`);
         }
     };
 

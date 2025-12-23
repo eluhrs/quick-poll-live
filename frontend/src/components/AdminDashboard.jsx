@@ -95,7 +95,9 @@ function AdminDashboard() {
         } catch (error) {
             console.error("Failed to fetch polls", error);
             if (error.response && error.response.status === 401) {
-                navigate('/login');
+                // Token expired or invalid
+                localStorage.removeItem('token');
+                navigate('/');
             }
         } finally {
             setLoading(false);

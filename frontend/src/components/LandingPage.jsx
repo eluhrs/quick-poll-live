@@ -17,7 +17,12 @@ function LandingPage() {
 
     useEffect(() => {
         document.title = 'Quick Poll Live';
-    }, []);
+
+        // UX IMPROVEMENT: If already logged in, go straight to Dashboard
+        if (localStorage.getItem('token')) {
+            navigate('/dashboard');
+        }
+    }, [navigate]);
 
     useEffect(() => {
         if (isAdminLogin && usernameInputRef.current) {
