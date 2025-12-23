@@ -88,6 +88,10 @@ class UserBase(BaseModel):
 class UserCreate(UserBase):
     password: str
 
+class UserPasswordUpdate(BaseModel):
+    old_password: str
+    new_password: str
+
 class User(UserBase):
     id: int
     polls: List[Poll] = []

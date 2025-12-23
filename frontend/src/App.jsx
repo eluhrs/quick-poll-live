@@ -10,16 +10,16 @@ import Scratchpad from './components/Scratchpad';
 import ScratchpadButtons from './components/ScratchpadButtons';
 import ScratchpadTabset from './components/ScratchpadTabset';
 import LandingOptions from './components/ScratchpadLandingOptions';
+import Profile from './components/Profile';
 
 function PrivateRoute({ children }) {
     const token = localStorage.getItem('token');
     return token ? children : <Navigate to="/" />;
 }
 
-// ... RedirectToVote ...
 function RedirectToVote() {
     const { slug } = useParams();
-    console.log("RedirectToVote Triggered. Slug:", slug, "Original Path:", window.location.pathname);
+    // Removed debug log for production
     return <Navigate to={`/${slug}/vote`} replace />;
 }
 
@@ -57,7 +57,6 @@ class GlobalErrorBoundary extends React.Component {
 }
 
 function App() {
-    console.log("App Rendering. Path:", window.location.pathname);
     return (
         <Router>
             <GlobalErrorBoundary>
@@ -73,6 +72,11 @@ function App() {
                             <CreatePoll />
                         </PrivateRoute>
                     } />
+                    <Route path="/profile" element={
+                        <PrivateRoute>
+                            <Profile />
+                        </PrivateRoute>
+                    } />
 
                     {/* Explicit Login Route to prevent generic catch-all "login" slug */}
                     <Route path="/login" element={<Navigate to="/" replace />} />
@@ -85,7 +89,9 @@ function App() {
 
                     {/* PRIORITY 3: Poll Interaction Routes (Specific patterns) */}
                     <Route path="/:slug/edit" element={
-                        <EditPoll />
+                        <PrivateRoute>
+                            <EditPoll />
+                        </PrivateRoute>
                     } />
                     <Route path="/:slug/results" element={<PollDisplay />} />
                     <Route path="/:slug/vote" element={<VotingView />} />
@@ -102,12 +108,7 @@ function App() {
                     <Route path="/:slug" element={<RedirectToVote />} />
 
                     {/* Absolute 404 Fallback */}
-                    {/* Absolute 404 Fallback - DEBUGGING */}
-                    <Route path="*" element={
-                        <div className="p-8 text-center bg-red-50 text-red-600 font-bold">
-                            404 - Route Not Found: {window.location.pathname}
-                        </div>
-                    } />
+                    <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
             </GlobalErrorBoundary>
         </Router>

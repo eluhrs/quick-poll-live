@@ -40,7 +40,9 @@ def list_polls(active_only: bool = False, db: Session = Depends(database.get_db)
     db.commit()
 
     # 2. Fetch sorted (Newest First)
-    query = db.query(models.Poll).filter(models.Poll.owner_id == current_user.id)
+    # 2. Fetch sorted (Newest First) - GLOBAL ACCESS
+    query = db.query(models.Poll)
+    # query = db.query(models.Poll).filter(models.Poll.owner_id == current_user.id) # DISABLED FOR SHARED ACCESS
     if active_only:
         query = query.filter(models.Poll.is_active == True)
     
@@ -59,7 +61,8 @@ def get_poll(slug: str, db: Session = Depends(database.get_db)):
 
 @router.put("/{slug}", response_model=schemas.Poll)
 def update_poll(slug: str, poll_update: schemas.PollUpdate, background_tasks: BackgroundTasks, db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_user)):
-    poll = db.query(models.Poll).filter(models.Poll.slug == slug, models.Poll.owner_id == current_user.id).first()
+    # poll = db.query(models.Poll).filter(models.Poll.slug == slug, models.Poll.owner_id == current_user.id).first()
+    poll = db.query(models.Poll).filter(models.Poll.slug == slug).first()
     if not poll:
         raise HTTPException(status_code=404, detail="Poll not found")
     
@@ -89,7 +92,8 @@ def update_poll(slug: str, poll_update: schemas.PollUpdate, background_tasks: Ba
 
 @router.put("/{slug}/close", response_model=schemas.Poll)
 def close_poll(slug: str, background_tasks: BackgroundTasks, db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_user)):
-    poll = db.query(models.Poll).filter(models.Poll.slug == slug, models.Poll.owner_id == current_user.id).first()
+    # poll = db.query(models.Poll).filter(models.Poll.slug == slug, models.Poll.owner_id == current_user.id).first()
+    poll = db.query(models.Poll).filter(models.Poll.slug == slug).first()
     if not poll:
         raise HTTPException(status_code=404, detail="Poll not found")
     poll.is_active = False
@@ -102,7 +106,8 @@ def close_poll(slug: str, background_tasks: BackgroundTasks, db: Session = Depen
 
 @router.put("/{slug}/open", response_model=schemas.Poll)
 def reopen_poll(slug: str, background_tasks: BackgroundTasks, db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_user)):
-    poll = db.query(models.Poll).filter(models.Poll.slug == slug, models.Poll.owner_id == current_user.id).first()
+    # poll = db.query(models.Poll).filter(models.Poll.slug == slug, models.Poll.owner_id == current_user.id).first()
+    poll = db.query(models.Poll).filter(models.Poll.slug == slug).first()
     if not poll:
         raise HTTPException(status_code=404, detail="Poll not found")
     poll.is_active = True
@@ -115,7 +120,8 @@ def reopen_poll(slug: str, background_tasks: BackgroundTasks, db: Session = Depe
 
 @router.post("/{slug}/questions", response_model=schemas.Question)
 def add_question(slug: str, question: schemas.QuestionCreate, background_tasks: BackgroundTasks, db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_user)):
-    poll = db.query(models.Poll).filter(models.Poll.slug == slug, models.Poll.owner_id == current_user.id).first()
+    # poll = db.query(models.Poll).filter(models.Poll.slug == slug, models.Poll.owner_id == current_user.id).first()
+    poll = db.query(models.Poll).filter(models.Poll.slug == slug).first()
     if not poll:
         raise HTTPException(status_code=404, detail="Poll not found")
     
@@ -146,7 +152,8 @@ def add_question(slug: str, question: schemas.QuestionCreate, background_tasks: 
 
 @router.delete("/{slug}/questions/{question_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_question(slug: str, question_id: int, background_tasks: BackgroundTasks, db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_user)):
-    poll = db.query(models.Poll).filter(models.Poll.slug == slug, models.Poll.owner_id == current_user.id).first()
+    # poll = db.query(models.Poll).filter(models.Poll.slug == slug, models.Poll.owner_id == current_user.id).first()
+    poll = db.query(models.Poll).filter(models.Poll.slug == slug).first()
     if not poll:
         raise HTTPException(status_code=404, detail="Poll not found")
     
@@ -168,7 +175,8 @@ def reorder_questions(slug: str, ordered_ids: List[int] = Body(...), background_
     pass 
     # Actually, simpler to just add it. reorder_questions(..., background_tasks: BackgroundTasks, ...)
 
-    poll = db.query(models.Poll).filter(models.Poll.slug == slug, models.Poll.owner_id == current_user.id).first()
+    # poll = db.query(models.Poll).filter(models.Poll.slug == slug, models.Poll.owner_id == current_user.id).first()
+    poll = db.query(models.Poll).filter(models.Poll.slug == slug).first()
     if not poll:
         raise HTTPException(status_code=404, detail="Poll not found")
     
@@ -190,7 +198,8 @@ def reorder_questions(slug: str, ordered_ids: List[int] = Body(...), background_
 @router.put("/{slug}/questions/{question_id}", response_model=schemas.Question)
 def update_question(slug: str, question_id: int, question_update: schemas.QuestionCreate, background_tasks: BackgroundTasks, db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_user)):
     # Verify poll ownership
-    poll = db.query(models.Poll).filter(models.Poll.slug == slug, models.Poll.owner_id == current_user.id).first()
+    # poll = db.query(models.Poll).filter(models.Poll.slug == slug, models.Poll.owner_id == current_user.id).first()
+    poll = db.query(models.Poll).filter(models.Poll.slug == slug).first()
     if not poll:
         raise HTTPException(status_code=404, detail="Poll not found")
 
@@ -258,7 +267,8 @@ async def submit_vote(slug: str, vote: schemas.VoteCreate, db: Session = Depends
 
 @router.delete("/{slug}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_poll(slug: str, db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_user)):
-    poll = db.query(models.Poll).filter(models.Poll.slug == slug, models.Poll.owner_id == current_user.id).first()
+    # poll = db.query(models.Poll).filter(models.Poll.slug == slug, models.Poll.owner_id == current_user.id).first()
+    poll = db.query(models.Poll).filter(models.Poll.slug == slug).first()
     if not poll:
         raise HTTPException(status_code=404, detail="Poll not found")
     

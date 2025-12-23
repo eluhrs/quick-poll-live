@@ -79,4 +79,38 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(database.get_db)
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
     return db_user
+
+@router.get("/users/me", response_model=schemas.User)
+async def read_users_me(current_user: models.User = Depends(get_current_user)):
+    return current_user
+
+@router.put("/users/me/password")
+async def change_password(
+    password_data: schemas.UserPasswordUpdate,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(database.get_db)
+):
+    # 1. Verify old password
+    if not verify_password(password_data.old_password, current_user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Incorrect old password"
+        )
+    
+    # 2. Validate new password (basic check)
+    if not password_data.new_password or len(password_data.new_password) < 4:
+         raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="New password must be at least 4 characters"
+        )
+
+    # 3. Hash and Save
+    current_user.hashed_password = get_password_hash(password_data.new_password)
+    db.add(current_user)
+    db.commit()
+    
+    return {"message": "Password updated successfully"}

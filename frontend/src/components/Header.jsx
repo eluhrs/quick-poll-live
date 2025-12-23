@@ -27,6 +27,9 @@ function Header() {
                 <Link to="/dashboard" className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-hover transition shadow-sm font-bold">
                     <BarChart2 size={20} /> Dashboard
                 </Link>
+                <Link to="/profile" className="flex items-center gap-2 bg-secondary text-secondary-text px-4 py-2 rounded-lg border border-primary hover:bg-secondary-hover transition font-bold">
+                    Profile
+                </Link>
                 <button onClick={handleLogout} className="flex items-center gap-2 bg-secondary text-secondary-text px-4 py-2 rounded-lg border border-primary hover:bg-secondary-hover transition font-bold">
                     <LogOut size={20} /> Logout
                 </button>

@@ -2,7 +2,7 @@ export const PALETTES = [
     {
         id: 'lehigh_soft',
         name: 'Lehigh',
-        colors: ['#7a6e6e', '#dcdcdc', '#8d8282', '#a89f9f', '#5e5454', '#a69b9b']
+        colors: ['#7a6e6e', '#bdbdbd', '#8d8282', '#a89f9f', '#5e5454', '#a69b9b']
     },
     {
         id: 'vibrant',

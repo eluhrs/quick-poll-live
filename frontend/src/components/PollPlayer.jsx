@@ -5,6 +5,29 @@ import { PALETTES } from '../constants/palettes';
 
 // --- SUB-COMPONENTS ---
 
+// --- HELPER FUNCTIONS ---
+const getGrayScale = (hex) => {
+    const r = parseInt(hex.substr(1, 2), 16);
+    const g = parseInt(hex.substr(3, 2), 16);
+    const b = parseInt(hex.substr(5, 2), 16);
+    return (0.299 * r + 0.587 * g + 0.114 * b);
+};
+
+const getContrastingTextColor = (hex) => {
+    if (!hex) return '#000';
+    return getGrayScale(hex) > 160 ? '#374151' : '#fff'; // cutoff for white text
+};
+
+const darkenColorForText = (hex) => {
+    if (!hex) return '#000';
+    // If it's too light, return a dark gray variant or darken it significantly
+    if (getGrayScale(hex) > 150) {
+        // Stronger contrast: use pure BLACK for optimal readability against white
+        return '#000000';
+    }
+    return hex;
+};
+
 const getSmartAxisWidth = (data, key = 'name') => {
     if (!data || data.length === 0) return 40;
     const maxLen = Math.max(...data.map(d => (d[key] || '').toString().length));
@@ -92,7 +115,16 @@ const PollVisualizer = ({ question, colors, isPreview }) => {
                             size = (minSize + maxSize) / 2;
                         }
                         return (
-                            <span key={i} style={{ fontSize: `${size}px`, color: colors[i % colors.length], fontFamily: 'Impact, sans-serif' }} className="transition-all hover:scale-110 cursor-default leading-none" title={`${w.text}: ${w.value}`}>
+                            <span
+                                key={i}
+                                style={{
+                                    fontSize: `${size}px`,
+                                    color: darkenColorForText(colors[i % colors.length]), // Ensure text is legible against white
+                                    fontFamily: 'Impact, sans-serif'
+                                }}
+                                className="transition-all hover:scale-110 cursor-default leading-none"
+                                title={`${w.text}: ${w.value}`}
+                            >
                                 {w.text}
                             </span>
                         );
@@ -107,6 +139,36 @@ const PollVisualizer = ({ question, colors, isPreview }) => {
     if (visType === 'pie' || visType === 'donut') {
         const innerRadius = visType === 'donut' ? (isPreview ? '40%' : '50%') : 0;
         const outerRadius = isPreview ? '80%' : '80%';
+
+        // Custom label to ensure contrast. 
+        // Recharts passes { cx, cy, midAngle, innerRadius, outerRadius, percent, index } to custom labels
+        const renderCustomLabel = (props) => {
+            const { cx, cy, midAngle, innerRadius, outerRadius, percent, index } = props;
+            const RADIAN = Math.PI / 180;
+            // Position label outside
+            const radius = outerRadius * 1.2;
+            const x = cx + radius * Math.cos(-midAngle * RADIAN);
+            const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+            // Use the slice color if it's dark enough, otherwise use dark gray
+            const sliceColor = colors[index % colors.length];
+            const textColor = darkenColorForText(sliceColor);
+
+            return (
+                <text
+                    x={x}
+                    y={y}
+                    fill={textColor}
+                    textAnchor={x > cx ? 'start' : 'end'}
+                    dominantBaseline="central"
+                    fontSize={12}
+                    fontWeight="bold"
+                >
+                    {`${(percent * 100).toFixed(0)}%`}
+                </text>
+            );
+        };
+
         return (
             <div className={heightClass}>
                 <ChartWrapper withLegend={true} data={data} colors={colors}>
@@ -117,8 +179,8 @@ const PollVisualizer = ({ question, colors, isPreview }) => {
                             cy="50%"
                             innerRadius={innerRadius}
                             outerRadius={outerRadius}
-                            labelLine={!isPreview}
-                            label={!isPreview ? ({ name, percent }) => `${(percent * 100).toFixed(0)}%` : null}
+                            labelLine={!isPreview} // This will still use default stroke color (usually black/slice color)
+                            label={!isPreview ? renderCustomLabel : null}
                             fill="#8884d8"
                             dataKey="votes"
                             isAnimationActive={true}
@@ -177,12 +239,22 @@ const PollVisualizer = ({ question, colors, isPreview }) => {
 
     if (visType === 'horizontal_bar') {
         const yAxisWidth = getSmartAxisWidth(data, 'name');
-        const renderCustomBarLabel = ({ x, y, width, height, value }) => {
+        const renderCustomBarLabel = ({ x, y, width, height, value, index }) => {
             const isWide = width > 30;
+            const barColor = colors[index % colors.length];
+            // If wide, we are inside. Check if bar is dark enough for white text.
+            // If not dark enough, use dark text.
+            // If not wide (outside), always use axisColor.
+
+            let textColor = axisColor;
+            if (isWide) {
+                textColor = getContrastingTextColor(barColor);
+            }
+
             return <text
                 x={isWide ? x + width - 10 : x + width + 5}
                 y={y + height / 2 + (fontSize / 3)}
-                fill={isWide ? '#fff' : axisColor}
+                fill={textColor}
                 textAnchor={isWide ? "end" : "start"}
                 fontSize={fontSize}
                 fontWeight="bold"
@@ -216,6 +288,8 @@ const PollVisualizer = ({ question, colors, isPreview }) => {
             const { root, depth, x, y, width, height, index, payload, colors, rank, name, value } = props;
             const safeName = name || (payload && payload.name) || '';
             const safeWidth = width || 0;
+            const cellColor = colors[index % colors.length];
+            const textColor = getContrastingTextColor(cellColor);
 
             return (
                 <g>
@@ -225,7 +299,7 @@ const PollVisualizer = ({ question, colors, isPreview }) => {
                         width={width}
                         height={height}
                         style={{
-                            fill: colors[index % colors.length],
+                            fill: cellColor,
                             stroke: '#fff',
                             strokeWidth: 2 / (depth + 1e-10),
                             strokeOpacity: 1 / (depth + 1e-10),
@@ -233,7 +307,7 @@ const PollVisualizer = ({ question, colors, isPreview }) => {
                     />
                     {safeWidth > 40 && height > 40 && safeName && (
                         <foreignObject x={x} y={y} width={width} height={height}>
-                            <div className="w-full h-full flex flex-col items-center justify-center text-white p-1 text-center overflow-hidden leading-tight">
+                            <div className="w-full h-full flex flex-col items-center justify-center p-1 text-center overflow-hidden leading-tight" style={{ color: textColor }}>
                                 <span className="font-bold w-full break-normal" style={{ fontSize: Math.max(10, Math.min(16, (safeWidth * 1.8) / Math.max(safeName.length, 4))) }}>{safeName}</span>
                                 <span className="text-xs">{value}</span>
                             </div>
