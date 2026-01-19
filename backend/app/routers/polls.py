@@ -287,6 +287,29 @@ async def submit_vote(slug: str, vote: schemas.VoteCreate, db: Session = Depends
     
     return {"status": "success"}
 
+@router.post("/{slug}/submit")
+async def submit_batch_vote(slug: str, batch: schemas.VoteBatch, db: Session = Depends(database.get_db)):
+    poll = db.query(models.Poll).filter(models.Poll.slug == slug).first()
+    if not poll or not poll.is_active:
+         raise HTTPException(status_code=400, detail="Poll is closed or invalid")
+    
+    # Extra check if auto-close wasn't triggered by listing yet
+    if poll.closes_at and poll.closes_at < datetime.utcnow():
+        raise HTTPException(status_code=400, detail="Poll has expired")
+
+    # Transaction: Add all votes at once
+    for vote in batch.answers:
+         db_vote = models.Vote(question_id=vote.question_id, option_id=vote.option_id, text_answer=vote.text_answer)
+         db.add(db_vote)
+    
+    db.commit()
+    # No refresh needed for bulk insert usually, unless we return them.
+    
+    # Broadcast update (single signal for the batch)
+    await manager.broadcast({"event": "update", "poll_id": poll.id}, slug)
+    
+    return {"status": "success", "count": len(batch.answers)}
+
 @router.delete("/{slug}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_poll(slug: str, db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_user)):
     # poll = db.query(models.Poll).filter(models.Poll.slug == slug, models.Poll.owner_id == current_user.id).first()

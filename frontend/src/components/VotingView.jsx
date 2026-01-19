@@ -50,17 +50,17 @@ function VotingView() {
     const handlePlayerSubmit = async (answers) => {
         setIsSubmitting(true);
         try {
-            // Send votes in parallel
-            const votePromises = Object.keys(answers).map(qId => {
+            // Prepare batch payload
+            const voteList = Object.keys(answers).map(qId => {
                 const ans = answers[qId];
-                const payload = {
+                return {
                     question_id: parseInt(qId),
                     [ans.isText ? 'text_answer' : 'option_id']: ans.value
                 };
-                return api.post(`/polls/${slug}/vote`, payload);
             });
 
-            await Promise.all(votePromises);
+            // Send single batch request
+            await api.post(`/polls/${slug}/submit`, { answers: voteList });
 
             // SECURITY: Set LocalStorage Flag (Obfuscated)
             localStorage.setItem(`qp_x_sess_${poll.id}`, Date.now().toString());

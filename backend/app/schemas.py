@@ -110,3 +110,5 @@ class VoteCreate(BaseModel):
     option_id: Optional[int] = None
     text_answer: Optional[str] = None
 
+class VoteBatch(BaseModel):
+    answers: List[VoteCreate]

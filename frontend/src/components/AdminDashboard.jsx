@@ -235,7 +235,9 @@ function Section({ title, polls, onClose, onDelete, onReset, active }) {
                                     >
                                         {poll.title}
                                     </Link>
-                                    <div className="text-gray-500 text-sm mt-1">{poll.questions.length} Questions</div>
+                                    <div className="text-gray-500 text-sm mt-1">
+                                        {poll.questions.length} Questions / {Math.max(0, ...poll.questions.map(q => q.votes ? q.votes.length : 0))} Responses
+                                    </div>
                                 </td>
                                 <td className="px-6 py-4 text-gray-500 text-sm">
                                     {new Date(poll.created_at).toLocaleDateString()}
