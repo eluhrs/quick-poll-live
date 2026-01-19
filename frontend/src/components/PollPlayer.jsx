@@ -55,7 +55,11 @@ const ChartWrapper = React.memo(({ children, withLegend = false, data, colors })
                 {children}
             </ResponsiveContainer>
         </div>
-        {withLegend && <SmartLegend data={data} colors={colors} />}
+        {withLegend && (
+            <div className="flex-shrink-0">
+                <SmartLegend data={data} colors={colors} />
+            </div>
+        )}
     </div>
 ));
 
@@ -64,8 +68,8 @@ const ChartWrapper = React.memo(({ children, withLegend = false, data, colors })
 const PollVisualizer = ({ question, colors, isPreview }) => {
     // Determine Type
     let visType = question.visualization_type || 'bar';
-    const heightClass = "h-full min-h-[400px]";
-    const fontSize = isPreview ? 12 : 14;
+    const heightClass = "h-full min-h-[50vh]";
+    const fontSize = isPreview ? 12 : (window.innerWidth < 768 ? 10 : 14);
     const axisColor = "#374151";
 
     // Prepare Data
@@ -516,7 +520,7 @@ function PollPlayer({ poll, activePalette, enableTitlePage, isPreview = false, c
                     </div>
                 ) : (
                     <div className="w-full h-full flex flex-col justify-center p-4">
-                        <h2 className={`${isPreview ? 'text-2xl' : 'text-4xl'} font-serif font-bold mb-8 text-[#502d0e] leading-tight text-center`} style={{ color: COLORS[0] }}>{question.text}</h2>
+                        <h2 className={`${isPreview ? 'text-2xl' : 'text-2xl md:text-4xl'} font-serif font-bold mb-4 md:mb-8 text-[#502d0e] leading-tight text-center`} style={{ color: COLORS[0] }}>{question.text}</h2>
                         <div className="flex-grow w-full relative flex flex-col justify-center">
                             {/* RENDER MEMOIZED ELEMENT */}
                             {memoizedVisualizer}

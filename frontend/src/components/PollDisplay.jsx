@@ -173,11 +173,11 @@ function PollDisplay() {
                 </ErrorBoundary>
             </div>
 
-            {/* Footer Bar - Rebranded & Reorganized */}
-            <div className="bg-white text-[#502d0e] h-24 flex items-center justify-between px-8 md:px-12 shadow-[0_-4px_20px_rgba(0,0,0,0.1)] z-30 flex-shrink-0 border-t-8 border-[#502d0e]">
+            {/* Footer Bar - Responsive */}
+            <div className="bg-white text-[#502d0e] h-14 md:h-24 flex items-center justify-between px-4 md:px-12 shadow-[0_-4px_20px_rgba(0,0,0,0.1)] z-30 flex-shrink-0 border-t-4 md:border-t-8 border-[#502d0e]">
 
-                {/* Left: LTS Logo */}
-                <div className="flex items-center gap-4">
+                {/* Left: LTS Logo (Desktop Only) */}
+                <div className="hidden md:flex items-center gap-4">
                     <img
                         src="/lts_logo.png"
                         alt="Lehigh LTS"
@@ -185,18 +185,21 @@ function PollDisplay() {
                     />
                 </div>
 
-                {/* Center: URL Display */}
-                <div className="absolute left-1/2 transform -translate-x-1/2 flex flex-col items-center">
-                    <span className="text-[#502d0e]/60 uppercase tracking-widest text-xs font-bold mb-0.5">Vote here:</span>
-                    <div className="text-3xl md:text-5xl font-black tracking-tight leading-none text-[#502d0e]">
-                        {window.location.host}
-                        <span className="text-[#502d0e]/40 font-normal ml-1">/{slug}</span>
+                {/* Center: URL Display (Responsively Scaled) */}
+                <div className="absolute left-1/2 transform -translate-x-1/2 flex flex-col items-center w-full">
+                    <span className="text-[#502d0e]/60 uppercase tracking-widest text-[10px] md:text-xs font-bold mb-0.5 hidden md:block">Vote here:</span>
+                    <div className="flex items-baseline gap-2">
+                        <span className="text-[#502d0e]/60 uppercase text-xs font-bold md:hidden">Vote:</span>
+                        <div className="text-xl md:text-5xl font-black tracking-tight leading-none text-[#502d0e]">
+                            {window.location.host}
+                            <span className="text-[#502d0e]/40 font-normal ml-1">/{slug}</span>
+                        </div>
                     </div>
                 </div>
 
-                {/* Right: QR & Code */}
-                <div className="flex items-center gap-6">
-                    <div className="text-right hidden md:block">
+                {/* Right: QR & Code (Desktop Only) */}
+                <div className="hidden md:flex items-center gap-6">
+                    <div className="text-right">
                         <div className="text-[#502d0e]/60 uppercase tracking-widest text-xs font-bold">Poll Code</div>
                         <div className="font-mono text-xl font-bold text-[#502d0e]">{poll?.slug || '...'}</div>
                     </div>
