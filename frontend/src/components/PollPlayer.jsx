@@ -450,10 +450,13 @@ function PollPlayer({ poll, activePalette, enableTitlePage, isPreview = false, c
     }, [activePalette, poll.color_palette]);
 
     // Derived Values
-    const totalVotes = questions.reduce((sum, q) => {
-        const qVotes = q.options ? q.options.reduce((acc, o) => acc + (o.votes ? o.votes.length : 0), 0) : 0;
-        return sum + qVotes;
-    }, 0);
+    // Fix: Use the maximum number of votes on any single question as the proxy for "Total Responses/Voters"
+    // instead of summing all votes across all questions (which inflates the count by N questions).
+    const totalVotes = useMemo(() => {
+        if (!questions || questions.length === 0) return 0;
+        const votesPerQuestion = questions.map(q => q.votes ? q.votes.length : 0);
+        return Math.max(...votesPerQuestion, 0);
+    }, [questions]);
 
     // Generate Signature for Updates (Prevent re-rendering on Timer Tick)
     // We only want to re-render visualization if this signature changes.
