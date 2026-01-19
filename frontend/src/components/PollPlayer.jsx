@@ -500,21 +500,21 @@ function PollPlayer({ poll, activePalette, enableTitlePage, isPreview = false, c
             <div className="flex-grow flex flex-col justify-center items-center w-full relative z-10 overflow-hidden">
                 {isTitlePage ? (
                     <div className="flex flex-col items-center justify-center text-center p-8 w-full h-full">
-                        <h1 className="text-5xl md:text-7xl font-black text-gray-900 mb-8 tracking-tight leading-tight max-w-4xl" style={{ color: COLORS[0] }}>
+                        <h1 className="text-4xl md:text-7xl font-black text-gray-900 mb-6 md:mb-8 tracking-tight leading-tight max-w-4xl" style={{ color: COLORS[0] }}>
                             {poll.title}
                         </h1>
-                        <div className="grid grid-cols-3 gap-8 md:gap-12 text-center">
-                            <div>
-                                <div className="text-4xl font-bold mb-2 text-gray-800">{questions.length}</div>
-                                <div className="text-gray-500 font-bold uppercase tracking-widest text-sm">Questions</div>
+                        <div className="flex flex-col md:grid md:grid-cols-3 gap-6 md:gap-12 text-center w-full max-w-lg md:max-w-none mx-auto">
+                            <div className="flex flex-row md:flex-col items-center justify-between md:justify-center border-b md:border-b-0 border-gray-100 pb-2 md:pb-0">
+                                <span className="text-gray-500 font-bold uppercase tracking-widest text-xs md:text-sm md:order-2">Questions</span>
+                                <span className="text-2xl md:text-4xl font-bold text-gray-800 md:mb-2 md:order-1">{questions.length}</span>
                             </div>
-                            <div>
-                                <div className="text-4xl font-bold mb-2 text-gray-800">{totalVotes}</div>
-                                <div className="text-gray-500 font-bold uppercase tracking-widest text-sm">Responses</div>
+                            <div className="flex flex-row md:flex-col items-center justify-between md:justify-center border-b md:border-b-0 border-gray-100 pb-2 md:pb-0">
+                                <span className="text-gray-500 font-bold uppercase tracking-widest text-xs md:text-sm md:order-2">Responses</span>
+                                <span className="text-2xl md:text-4xl font-bold text-gray-800 md:mb-2 md:order-1">{totalVotes}</span>
                             </div>
-                            <div>
-                                <div className="text-4xl font-bold mb-2 text-gray-800">{poll.closes_at ? new Date(poll.closes_at).toLocaleDateString() : '∞'}</div>
-                                <div className="text-gray-500 font-bold uppercase tracking-widest text-sm">Close Date</div>
+                            <div className="flex flex-row md:flex-col items-center justify-between md:justify-center border-b md:border-b-0 border-gray-100 pb-2 md:pb-0">
+                                <span className="text-gray-500 font-bold uppercase tracking-widest text-xs md:text-sm md:order-2">Close Date</span>
+                                <span className="text-2xl md:text-4xl font-bold text-gray-800 md:mb-2 md:order-1">{poll.closes_at ? new Date(poll.closes_at).toLocaleDateString() : '∞'}</span>
                             </div>
                         </div>
                     </div>
