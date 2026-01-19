@@ -12,46 +12,17 @@ if [ $# -eq 0 ]; then
     exit 1
 fi
 
-# Determine if we should forward stdin (only for pipe operations, rarely used here but good practice)
-# Actually, the user provides filenames which are HOST filenames.
-# This script has a complexity: The python script expects to read/write files.
-# If running inside docker, it can only see container files.
-# Strategy: 
-#   Export: Run python, output JSON to stdout, capture in shell.
-#   Import: Read file in shell, pass to python via stdin? Or copy file?
-#   The previous `bulk_editor.py` took filenames as arguments.
-#   If we embed it, we must ensure file paths are handled correctly.
+# Ensure container is running
+if ! docker ps | grep -q poll_backend; then
+    echo "Error: Backend container 'poll_backend' is not running."
+    echo "Please run 'docker compose up -d' first."
+    exit 1
+fi
 
-# Let's adjust the python script (in the HEREDOC) to support reading/writing from/to stdout/stdin if filename is "-" 
-# or keep it simple: Map current directory? No, avoiding complex mounts.
-
-# Simplified Approach for Single Script:
-# 1. Export: Python prints JSON to stdout (if no filename arg or special arg). Shell redirects to file.
-# 2. Import: Shell reads file, pipes to Python stdin.
-
-# But the original script `bulk_editor.py` used args: `export slug [filename]` and `import filename`.
-# To make this seamless without changing arguments too much:
-
-# EXPORT:
-# If command is export, we run python with arguments. 
-# But python is running in container. It cannot write to host filesystem directly unless mounted.
-# The `bin/` dir is mounted. If user writes to `bin/output.json`, it works.
-# But user might want current dir.
-# Solution: 
-#   If exporting, instruct python to print to stdout. Capture output in bash and write to file.
-#   If importing, instruct python to read from stdin. Cat file in bash and pipe to python.
-
-# Let's Modify the Embedded Python Script slightly to handle "stdin/stdout" if filename is missing or special.
-
-# ... Logic below updates the python script to check for stdin/stdout usage ...
-
-# COMMAND ARGUMENT HANDLING
-CMD=$1
-shift
-ARGS="$@"
-
-# Execute
-docker exec -i -e PYTHONPATH=/app poll_backend python - $CMD $ARGS << 'EOF'
+# Embedded Python Script
+# We store it in a variable to allow passing it via -c argument
+# This allows us to use stdin for data piping instead of script source
+PY_SCRIPT=$(cat << 'PYTHON_EOF'
 import sys
 import json
 import argparse
@@ -62,19 +33,17 @@ import os
 
 # Helper to read/write
 def write_output(data, filename):
-    # If filename is provided, try to write to it (inside container).
-    # Ideally we just print to stdout if it's meant for the user on host.
-    # But since we are piping this script into python, standard print() might be mixed with execution logs if we are not careful.
-    # We should print JSON to stdout and logs to stderr.
-    if filename:
+    # Always print to stdout if no filename or explicit "-"
+    # The shell wrapper handles redirection to actual file on host
+    if not filename or filename == "-":
+        print(json.dumps(data, indent=4))
+    else:
+        # Fallback if run manually inside container
         with open(filename, 'w') as f:
             json.dump(data, f, indent=4)
-        sys.stderr.write(f"Successfully exported to {filename} (inside container)\n")
-    else:
-        print(json.dumps(data, indent=4))
+        sys.stderr.write(f"Successfully exported to {filename}\n")
 
 def read_input(filename):
-    # If filename matches a file in container, read it.
     # If filename is "-", read stdin.
     if filename == "-" or not filename:
         return json.load(sys.stdin)
@@ -186,4 +155,55 @@ if __name__ == "__main__":
         import_poll(args.filename)
     else:
         parser.print_help()
-EOF
+PYTHON_EOF
+)
+
+# Helper function to execute python script via docker exec using -c
+run_python() {
+    # arguments passed to this function are passed to python script
+    docker exec -i -e PYTHONPATH=/app poll_backend python -c "$PY_SCRIPT" "$@"
+}
+
+CMD=$1
+arg2=$2
+arg3=$3
+
+if [ "$CMD" == "export" ]; then
+    if [ -z "$arg2" ]; then
+        echo "Error: export requires a poll slug."
+        echo "Usage: $0 export <slug> [filename.json]"
+        exit 1
+    fi
+    
+    # Check if filename is provided (arg3)
+    if [ -n "$arg3" ]; then
+        # Run python export with no filename arg (prints to stdout)
+        # Capture stdout to host file
+        # Note: We pass "-" as filename arg just in case, or omit it. 
+        # Python script says nargs="?", so verifying we pass NO arg for filename.
+        run_python export "$arg2" > "$arg3"
+    else
+        # No filename, just output to stdout
+        run_python export "$arg2"
+    fi
+
+elif [ "$CMD" == "import" ]; then
+    if [ -z "$arg2" ]; then
+        echo "Error: import requires a filename."
+        echo "Usage: $0 import <filename.json>"
+        exit 1
+    fi
+
+    # Check if file exists on host
+    if [ ! -f "$arg2" ]; then
+        echo "Error: File '$arg2' not found on host."
+        exit 1
+    fi
+
+    # Read host file and pipe to python, passing "-" as filename argument
+    cat "$arg2" | run_python import -
+
+else
+    # Allow other commands or help
+    run_python "$@"
+fi
