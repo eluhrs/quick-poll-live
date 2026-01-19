@@ -1,0 +1,70 @@
+{
+    "id": 5,
+    "title": "What Does Liberty Mean to You?",
+    "slug": "978ac1",
+    "questions": [
+        {
+            "id": 24,
+            "text": "Which concept is most essential to your definition of 'liberty'?",
+            "type": "multiple_choice",
+            "order": 0,
+            "options": [
+                { "id": 115, "text": "Freedom from government control" },
+                { "id": 116, "text": "Access to basic necessities (healthcare, housing, etc.)" },
+                { "id": 117, "text": "The power to protest and challenge injustice" },
+                { "id": 118, "text": "All of the above" }
+            ]
+        },
+        {
+            "id": 25,
+            "text": "Have the American ideals of liberty and equality been fully achieved for everyone today?",
+            "type": "multiple_choice",
+            "order": 1,
+            "options": [
+                { "id": 119, "text": "Yes — They are fully realized" },
+                { "id": 120, "text": "No — They have not been realized at all" },
+                { "id": 121, "text": "Partially — Progress made, but work remains" },
+                { "id": 122, "text": "In theory only — They exist only on paper" }
+            ]
+        },
+        {
+            "id": 26,
+            "text": "Who holds the primary responsibility for defending an individual's threatened liberty?",
+            "type": "multiple_choice",
+            "order": 2,
+            "options": [
+                { "id": 123, "text": "The individual" },
+                { "id": 124, "text": "The government/justice system" },
+                { "id": 125, "text": "The community and citizens" },
+                { "id": 126, "text": "All stakeholders shared" }
+            ]
+        },
+        {
+            "id": 27,
+            "text": "'Liberty' includes the freedom to act in ways that limit another person's liberty.",
+            "type": "multiple_choice",
+            "order": 3,
+            "options": [
+                { "id": 127, "text": "True" },
+                { "id": 128, "text": "False" }
+            ]
+        },
+        {
+            "id": 28,
+            "text": "Which area of advocacy is most critical for advancing liberty today?",
+            "type": "multiple_choice",
+            "order": 4,
+            "options": [
+                { "id": 129, "text": "Civil Rights & Racial Justice" },
+                { "id": 130, "text": "Women’s Rights & Gender Equality" },
+                { "id": 131, "text": "Economic Justice & Workers’ Rights" },
+                { "id": 132, "text": "Environmental & Climate Justice" },
+                { "id": 133, "text": "Digital Liberty & Data Privacy" },
+                { "id": 134, "text": "Educational Equity & Intellectual Freedom" },
+                { "id": 135, "text": "All of the above" },
+                { "id": 136, "text": "None of the above" },
+                { "id": 137, "text": "Something else" }
+            ]
+        }
+    ]
+}

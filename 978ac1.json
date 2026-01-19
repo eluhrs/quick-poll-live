@@ -1,0 +1,127 @@
+{
+    "id": 5,
+    "title": "What Does Liberty Mean to You?",
+    "slug": "978ac1",
+    "questions": [
+        {
+            "id": 24,
+            "text": "Which of the following concepts is most essential to your personal definition of \"liberty\"?",
+            "type": "multiple_choice",
+            "order": 0,
+            "options": [
+                {
+                    "id": 115,
+                    "text": "Freedom from government interference and control."
+                },
+                {
+                    "id": 116,
+                    "text": "The right to access necessities like healthcare, education, and housing."
+                },
+                {
+                    "id": 117,
+                    "text": "The power to challenge injustice through protest and advocacy."
+                },
+                {
+                    "id": 118,
+                    "text": "All of the above."
+                }
+            ]
+        },
+        {
+            "id": 25,
+            "text": "The core ideals of liberty and equality expressed in the American founding documents have been fully achieved for all people in the United States today.",
+            "type": "multiple_choice",
+            "order": 1,
+            "options": [
+                {
+                    "id": 119,
+                    "text": "True \u2014 The ideals have been fully realized."
+                },
+                {
+                    "id": 120,
+                    "text": "False \u2014 The ideals have not been realized at all."
+                },
+                {
+                    "id": 121,
+                    "text": "Partially \u2014 Progress has been made, but significant work remains."
+                },
+                {
+                    "id": 122,
+                    "text": "In Theory Only \u2014 The ideals exist mostly in our founding documents."
+                }
+            ]
+        },
+        {
+            "id": 26,
+            "text": "When an individual\u2019s liberty is actively denied or threatened, who holds the greatest responsibility for fighting for that liberty?",
+            "type": "multiple_choice",
+            "order": 2,
+            "options": [
+                {
+                    "id": 123,
+                    "text": "The individual themselves."
+                },
+                {
+                    "id": 124,
+                    "text": "The government or justice system."
+                },
+                {
+                    "id": 125,
+                    "text": "The community and fellow citizens."
+                },
+                {
+                    "id": 126,
+                    "text": "All stakeholders share responsibility."
+                }
+            ]
+        },
+        {
+            "id": 27,
+            "text": "A person\u2019s right to liberty should include the freedom to act in a way that directly harms or restricts the liberty of others.",
+            "type": "multiple_choice",
+            "order": 3,
+            "options": [
+                {
+                    "id": 127,
+                    "text": "True"
+                },
+                {
+                    "id": 128,
+                    "text": "False"
+                }
+            ]
+        },
+        {
+            "id": 28,
+            "text": "In the context of \"Unfinished Revolutions,\" which current area of advocacy do you feel is the most critical for advancing liberty today?",
+            "type": "multiple_choice",
+            "order": 4,
+            "options": [
+                {
+                    "id": 129,
+                    "text": "Civil Rights and Racial Justice"
+                },
+                {
+                    "id": 130,
+                    "text": "Women\u2019s Rights and Gender Equality"
+                },
+                {
+                    "id": 131,
+                    "text": "Economic Justice and Workers\u2019 Rights"
+                },
+                {
+                    "id": 132,
+                    "text": "Environmental Justice and Climate Action"
+                },
+                {
+                    "id": 133,
+                    "text": "Digital Liberty, Privacy, and Information Access"
+                },
+                {
+                    "id": 134,
+                    "text": "Educational Equity and Intellectual Freedom"
+                }
+            ]
+        }
+    ]
+}
