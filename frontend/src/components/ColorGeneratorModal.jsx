@@ -16,19 +16,19 @@ const hslToHex = (h, s, l) => {
 const generatePaletteForMode = (mode) => {
     let newColors = [];
     if (mode === 'multi-hue') {
-        for (let i = 0; i < 6; i++) {
+        for (let i = 0; i < 12; i++) {
             newColors.push(hslToHex(Math.floor(Math.random() * 360), 60 + Math.random() * 20, 45 + Math.random() * 15));
         }
     } else if (mode === 'single-hue') {
         const baseHue = Math.floor(Math.random() * 360);
-        for (let i = 0; i < 6; i++) {
-            newColors.push(hslToHex(baseHue, 50 + Math.random() * 30, 20 + (i * 12)));
+        for (let i = 0; i < 12; i++) {
+            newColors.push(hslToHex(baseHue, 50 + Math.random() * 30, 20 + (i * 6)));
         }
     } else if (mode === 'divergent') {
         const hue1 = Math.floor(Math.random() * 360);
         const hue2 = (hue1 + 180) % 360;
-        for (let i = 0; i < 3; i++) newColors.push(hslToHex(hue1, 70, 30 + (i * 15)));
-        for (let i = 0; i < 3; i++) newColors.push(hslToHex(hue2, 70, 30 + (i * 15)));
+        for (let i = 0; i < 6; i++) newColors.push(hslToHex(hue1, 70, 30 + (i * 10)));
+        for (let i = 0; i < 6; i++) newColors.push(hslToHex(hue2, 70, 30 + (i * 10)));
     }
     return newColors;
 };
@@ -135,18 +135,37 @@ function ColorGeneratorModal({ onClose, onApply, initialColors }) {
                     </div>
 
                     {/* Palette Preview */}
-                    <div className="h-48 rounded-2xl overflow-hidden flex shadow-inner ring-4 ring-gray-100 relative group/display">
-                        {currentColors.map((c, i) => (
-                            <div
-                                key={`${currentIndex}-${i}`}
-                                className="h-full flex-1 transition-colors duration-300 flex items-end justify-center pb-4 group"
-                                style={{ backgroundColor: c }}
-                            >
-                                <span className="bg-black/20 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition backdrop-blur-sm font-mono">
-                                    {c}
-                                </span>
+                    <div className="h-48 rounded-2xl overflow-hidden shadow-inner ring-4 ring-gray-100 relative group/display bg-gray-50 p-1">
+                        <div className="grid grid-rows-2 h-full w-full gap-1">
+                            {/* Row 1 */}
+                            <div className="flex h-full w-full gap-1">
+                                {currentColors.slice(0, 6).map((c, i) => (
+                                    <div
+                                        key={`r1-${i}`}
+                                        className="h-full flex-1 transition-colors duration-300 flex items-end justify-center pb-2 group rounded-md"
+                                        style={{ backgroundColor: c }}
+                                    >
+                                        <span className="bg-black/20 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition backdrop-blur-sm font-mono scale-90">
+                                            {c}
+                                        </span>
+                                    </div>
+                                ))}
                             </div>
-                        ))}
+                            {/* Row 2 */}
+                            <div className="flex h-full w-full gap-1">
+                                {currentColors.slice(6, 12).map((c, i) => (
+                                    <div
+                                        key={`r2-${i}`}
+                                        className="h-full flex-1 transition-colors duration-300 flex items-end justify-center pb-2 group rounded-md"
+                                        style={{ backgroundColor: c }}
+                                    >
+                                        <span className="bg-black/20 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition backdrop-blur-sm font-mono scale-90">
+                                            {c}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
                     </div>
                 </div>
 

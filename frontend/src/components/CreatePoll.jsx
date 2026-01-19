@@ -168,10 +168,17 @@ function CreatePoll() {
                                             }}
                                             className={`relative p-3 rounded-xl border-2 text-left transition-all ${palette === p.id ? 'border-primary bg-secondary/30 ring-1 ring-primary' : 'border-gray-100 hover:border-gray-300'}`}
                                         >
-                                            <div className="flex gap-1 mb-2 h-4">
-                                                {p.colors.slice(0, 6).map(c => (
-                                                    <div key={c} className="flex-1 h-full rounded-sm" style={{ backgroundColor: c }}></div>
-                                                ))}
+                                            <div className="flex flex-col h-full w-full gap-1">
+                                                <div className="flex h-1/2 w-full gap-1">
+                                                    {p.colors.slice(0, 6).map((c, i) => (
+                                                        <div key={`t-${i}`} className="h-full flex-1 rounded-sm" style={{ backgroundColor: c }} />
+                                                    ))}
+                                                </div>
+                                                <div className="flex h-1/2 w-full gap-1">
+                                                    {p.colors.slice(6, 12).map((c, i) => (
+                                                        <div key={`b-${i}`} className="h-full flex-1 rounded-sm" style={{ backgroundColor: c }} />
+                                                    ))}
+                                                </div>
                                             </div>
                                             <span className={`text-sm font-bold ${palette === p.id ? 'text-primary' : 'text-gray-500'}`}>{p.name}</span>
                                         </button>
