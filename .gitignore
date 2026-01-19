@@ -15,3 +15,4 @@ htmlcov/
 DEPLOY_LEHIGH.md
 SECURITY_LEHIGH.md
 create_liberty_poll.py
+seed_data.sh

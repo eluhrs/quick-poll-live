@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, CheckCircle } from 'lucide-react';
 import api from '../api';
 import VotingPlayer from './VotingPlayer';
 
 function VotingView() {
     const { slug } = useParams();
+    const navigate = useNavigate();
     const [poll, setPoll] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isFinished, setIsFinished] = useState(false);
+    const [alreadyVoted, setAlreadyVoted] = useState(false);
     const [error, setError] = useState(null);
 
     useEffect(() => {
@@ -16,22 +18,28 @@ function VotingView() {
         fetchPoll();
     }, [slug]);
 
+    useEffect(() => {
+        if (alreadyVoted) {
+            const timer = setTimeout(() => {
+                navigate(`/${slug}/results`);
+            }, 5000);
+            return () => clearTimeout(timer);
+        }
+    }, [alreadyVoted, slug, navigate]);
+
     const fetchPoll = async () => {
         try {
             const res = await api.get(`/polls/${slug}`);
             setPoll(res.data);
 
             // SECURITY: Check LocalStorage Flag
-            // EXEMPTION: Localhost or ?[VITE_TEST_FLAG]=true bypasses this check.
+            // EXEMPTION: ?[VITE_TEST_FLAG]=true bypasses this check. (Removed localhost exemption)
             const testFlag = import.meta.env.VITE_TEST_FLAG;
-            const isDev = window.location.hostname === 'localhost' || new URLSearchParams(window.location.search).get(testFlag) === 'true';
+            const isDev = new URLSearchParams(window.location.search).get(testFlag) === 'true';
 
             const hasVoted = localStorage.getItem(`qp_x_sess_${res.data.id}`);
             if (hasVoted && !isDev) {
-                // Optional: We could show a toast here, but user asked for direct redirect.
-                // Using window.location to ensure clean state or navigate
-                // navigate(`/${slug}/results`); // We need useNavigate
-                window.location.href = `/${slug}/results`;
+                setAlreadyVoted(true);
             }
         } catch (err) {
             console.error(err);
@@ -67,6 +75,30 @@ function VotingView() {
     };
 
     if (error) return <div className="p-8 text-center text-red-600 font-bold">{error}</div>;
+
+    if (alreadyVoted) {
+        return (
+            <div className="min-h-screen p-6 flex flex-col items-center justify-center bg-gray-50">
+                <div className="max-w-md w-full bg-white p-8 rounded-xl shadow-lg text-center">
+                    <div className="flex justify-center mb-4 text-green-500">
+                        <CheckCircle size={64} />
+                    </div>
+                    <h1 className="text-3xl font-bold mb-4 text-gray-900">Thank You!</h1>
+                    <p className="text-gray-600 font-medium whitespace-pre-line mb-6">
+                        Thank you for voting.
+                        {'\n'}
+                        Automatically redirected you to the <Link to={`/${slug}/results`} className="text-blue-600 underline hover:text-blue-800">results page</Link>.
+                    </p>
+                    <div className="mt-4">
+                        <div className="animate-pulse h-1 bg-primary/20 rounded-full w-24 mx-auto overflow-hidden">
+                            <div className="h-full bg-primary animate-progress origin-left"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     if (!poll) return <div className="p-8 text-center text-gray-500">Loading Poll...</div>;
 
     if (isFinished) {

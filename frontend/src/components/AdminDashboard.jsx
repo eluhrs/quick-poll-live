@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../api';
-import { PlusCircle, Archive, Share2, Check, Edit, Trash2, RotateCcw } from 'lucide-react';
+import { PlusCircle, Archive, Check, Edit, Trash2, RotateCcw, Copy, Hash, ExternalLink, BarChart2, ChevronDown } from 'lucide-react';
 import DeleteModal from './DeleteModal';
 import Header from './Header';
 
@@ -10,7 +10,6 @@ function AdminDashboard() {
     const [polls, setPolls] = useState([]);
     const [loading, setLoading] = useState(true);
     const [modalConfig, setModalConfig] = useState({ isOpen: false, type: null, slug: null });
-    const [copiedId, setCopiedId] = useState(null);
     const [activeTab, setActiveTab] = useState('active');
     const navigate = useNavigate();
 
@@ -50,6 +49,18 @@ function AdminDashboard() {
         });
     };
 
+    const confirmReset = (slug) => {
+        setModalConfig({
+            isOpen: true,
+            type: 'reset',
+            slug,
+            title: 'Reset Poll?',
+            message: 'Are you sure you want to clear ALL votes for this poll? This cannot be undone.',
+            confirmText: 'Reset Votes',
+            isDanger: true
+        });
+    };
+
     const handleModalConfirm = async () => {
         const { type, slug } = modalConfig;
         if (!slug) return;
@@ -61,6 +72,8 @@ function AdminDashboard() {
                 await api.put(`/polls/${slug}/close`);
             } else if (type === 'reopen') {
                 await api.put(`/polls/${slug}/open`);
+            } else if (type === 'reset') {
+                await api.put(`/polls/${slug}/reset`);
             }
             fetchPolls();
         } catch (error) {
@@ -70,18 +83,6 @@ function AdminDashboard() {
             setModalConfig({ ...modalConfig, isOpen: false });
         }
     };
-
-    const handleCopy = (id, slug) => {
-        const url = `${window.location.origin}/${slug}/vote`;
-        navigator.clipboard.writeText(url);
-        setCopiedId(id);
-        setTimeout(() => setCopiedId(null), 2000);
-    };
-
-    useEffect(() => {
-        document.title = 'Quick Poll Live: Dashboard';
-        fetchPolls();
-    }, []);
 
     useEffect(() => {
         document.title = 'Quick Poll Live: Dashboard';
@@ -164,9 +165,8 @@ function AdminDashboard() {
                                     polls={activePolls}
                                     onClose={confirmClose}
                                     onDelete={confirmDelete}
+                                    onReset={confirmReset}
                                     active
-                                    onCopy={handleCopy}
-                                    copiedId={copiedId}
                                 />
                             </div>
                         ) : (
@@ -176,8 +176,7 @@ function AdminDashboard() {
                                     polls={archivedPolls}
                                     onClose={confirmReopen}
                                     onDelete={confirmDelete}
-                                    onCopy={handleCopy}
-                                    copiedId={copiedId}
+                                    onReset={confirmReset}
                                 />
                             </div>
                         )}
@@ -208,27 +207,28 @@ function AdminDashboard() {
     );
 }
 
-function Section({ title, polls, onClose, onDelete, active, onCopy, copiedId }) {
+function Section({ title, polls, onClose, onDelete, onReset, active }) {
     if (polls.length === 0) return (
         <div className="text-gray-400 italic p-6 bg-white rounded-lg border border-gray-200">No polls found in this section.</div>
     );
 
     return (
         <section>
-            <div className="bg-white rounded-xl shadow-sm border border-gray-400 overflow-hidden">
+            {/* Removed overflow-hidden to allow dropdowns to spill out. Added rounded corners manually to headers. */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-400">
                 <table className="w-full text-left border-collapse">
                     <thead>
                         <tr className="bg-secondary border-b border-gray-300 text-secondary-text text-xs font-bold uppercase tracking-wider">
-                            <th className="px-6 py-4">Title</th>
+                            <th className="px-6 py-4 first:rounded-tl-xl">Title</th>
                             <th className="px-6 py-4">Start Date</th>
                             <th className="px-6 py-4">Close Date</th>
-                            <th className="px-6 py-4 text-right">Actions</th>
+                            <th className="px-6 py-4 text-right last:rounded-tr-xl">Actions</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
                         {polls.map(poll => (
-                            <tr key={poll.id} className="hover:bg-secondary-hover transition-colors">
-                                <td className="px-6 py-4">
+                            <tr key={poll.id} className="hover:bg-secondary-hover transition-colors last:rounded-b-xl">
+                                <td className="px-6 py-4 first:rounded-bl-xl">
                                     <Link
                                         to={`/${poll.slug}/edit`}
                                         className="font-medium text-gray-900 text-lg hover:underline decoration-gray-400 underline-offset-4"
@@ -243,19 +243,13 @@ function Section({ title, polls, onClose, onDelete, active, onCopy, copiedId }) 
                                 <td className="px-6 py-4 text-gray-500 text-sm">
                                     {poll.closes_at ? new Date(poll.closes_at).toLocaleString() : (poll.closed_at ? new Date(poll.closed_at).toLocaleDateString() : <span className="text-2xl leading-none">&infin;</span>)}
                                 </td>
-                                <td className="px-6 py-4 text-right">
+                                <td className="px-6 py-4 text-right last:rounded-br-xl">
                                     <div className="flex gap-4 justify-end items-center">
                                         <Link to={`/${poll.slug}/edit`} className="text-gray-400 hover:text-indigo-600 transition-colors" title="Edit Poll">
                                             <Edit size={20} />
                                         </Link>
 
-                                        <button
-                                            onClick={() => onCopy(poll.id, poll.slug)}
-                                            className={`transition-colors ${copiedId === poll.id ? 'text-gray-400' : 'text-gray-400 hover:text-blue-600'}`}
-                                            title="Share Poll"
-                                        >
-                                            {copiedId === poll.id ? <Check size={20} /> : <Share2 size={20} />}
-                                        </button>
+                                        <ShareMenu slug={poll.slug} />
 
                                         {active ? (
                                             <button onClick={() => onClose(poll.slug)} className="text-gray-400 hover:text-amber-600 transition-colors" title="Close Poll">
@@ -266,6 +260,10 @@ function Section({ title, polls, onClose, onDelete, active, onCopy, copiedId }) 
                                                 <RotateCcw size={20} />
                                             </button>
                                         )}
+
+                                        <button onClick={() => onReset(poll.slug)} className="text-gray-400 hover:text-orange-600 transition-colors" title="Reset Poll">
+                                            <RotateCcw size={20} />
+                                        </button>
 
                                         <button onClick={() => onDelete(poll.slug)} className="text-gray-400 hover:text-red-600 transition-colors" title="Delete Poll">
                                             <Trash2 size={20} />
@@ -279,6 +277,73 @@ function Section({ title, polls, onClose, onDelete, active, onCopy, copiedId }) 
             </div>
         </section>
     )
+}
+
+function ShareMenu({ slug }) {
+    const [isOpen, setIsOpen] = useState(false);
+    const [feedback, setFeedback] = useState(null); // 'code', 'vote', 'results'
+
+    // Close menu when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (!event.target.closest('.share-menu-container')) {
+                setIsOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const copyToClipboard = (text, type) => {
+        navigator.clipboard.writeText(text);
+        setFeedback(type);
+        setTimeout(() => setFeedback(null), 2000);
+        // Optional: Close menu after copy or keep open? User preference usually keep open for multiple actions or close. 
+        // Let's close after a short delay or keep open to see feedback.
+        // Keeping open to see feedback checkmark is better UX.
+    };
+
+    return (
+        <div className="relative share-menu-container flex items-center">
+            <button
+                onClick={() => setIsOpen(!isOpen)}
+                className={`transition-colors flex items-center ${isOpen ? 'text-blue-600' : 'text-gray-400 hover:text-blue-600'}`}
+                title="Copy Poll Options"
+            >
+                <Copy size={20} />
+            </button>
+
+            {isOpen && (
+                <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50 overflow-hidden">
+                    <div className="py-1">
+                        <button
+                            onClick={() => copyToClipboard(slug, 'code')}
+                            className="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center gap-3 text-sm text-gray-700"
+                        >
+                            {feedback === 'code' ? <Check size={16} className="text-green-600" /> : <Hash size={16} />}
+                            Copy Code
+                        </button>
+
+                        <button
+                            onClick={() => copyToClipboard(`${window.location.origin}/${slug}/vote`, 'vote')}
+                            className="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center gap-3 text-sm text-gray-700"
+                        >
+                            {feedback === 'vote' ? <Check size={16} className="text-green-600" /> : <ExternalLink size={16} />}
+                            Copy Vote URL
+                        </button>
+
+                        <button
+                            onClick={() => copyToClipboard(`${window.location.origin}/${slug}/results`, 'results')}
+                            className="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center gap-3 text-sm text-gray-700"
+                        >
+                            {feedback === 'results' ? <Check size={16} className="text-green-600" /> : <BarChart2 size={16} />}
+                            Copy Results URL
+                        </button>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
 }
 
 export default AdminDashboard;

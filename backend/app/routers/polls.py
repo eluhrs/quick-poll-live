@@ -118,6 +118,28 @@ def reopen_poll(slug: str, background_tasks: BackgroundTasks, db: Session = Depe
     background_tasks.add_task(manager.broadcast, {"event": "update", "poll_id": poll.id}, slug)
     return poll
 
+@router.put("/{slug}/reset", response_model=schemas.Poll)
+def reset_poll(slug: str, background_tasks: BackgroundTasks, db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_user)):
+    # poll = db.query(models.Poll).filter(models.Poll.slug == slug, models.Poll.owner_id == current_user.id).first()
+    poll = db.query(models.Poll).filter(models.Poll.slug == slug).first()
+    if not poll:
+        raise HTTPException(status_code=404, detail="Poll not found")
+    
+    # Identify all questions for this poll
+    questions = db.query(models.Question).filter(models.Question.poll_id == poll.id).all()
+    question_ids = [q.id for q in questions]
+
+    if question_ids:
+        # Delete all votes associated with these questions
+        # Using bulk delete for efficiency if supported, or individual loop
+        # sqlalchemy delete() is best
+        db.query(models.Vote).filter(models.Vote.question_id.in_(question_ids)).delete(synchronize_session=False)
+        db.commit()
+
+    db.refresh(poll)
+    background_tasks.add_task(manager.broadcast, {"event": "reset", "poll_id": poll.id}, slug)
+    return poll
+
 @router.post("/{slug}/questions", response_model=schemas.Question)
 def add_question(slug: str, question: schemas.QuestionCreate, background_tasks: BackgroundTasks, db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_user)):
     # poll = db.query(models.Poll).filter(models.Poll.slug == slug, models.Poll.owner_id == current_user.id).first()
