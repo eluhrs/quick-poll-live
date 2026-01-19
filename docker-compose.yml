@@ -6,6 +6,7 @@ services:
     container_name: poll_backend
     volumes:
       - ./backend:/app
+      - ./bin:/app/bin
       - ./data:/data
     ports:
       - "127.0.0.1:8000:8000"

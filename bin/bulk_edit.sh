@@ -13,4 +13,4 @@ if [ $# -eq 0 ]; then
 fi
 
 # Run the python script inside the 'backend' container
-docker compose exec backend python bulk_editor.py "$@"
+docker compose exec -e PYTHONPATH=/app backend python /app/bin/bulk_editor.py "$@"

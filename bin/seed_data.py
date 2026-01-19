@@ -1,12 +1,49 @@
 import random
+import argparse
+import sys
+import secrets
 from app.database import SessionLocal
 from app import models
 from app.auth import get_password_hash
-import secrets
+import datetime
 
-import sys
+def generate_random_votes(db, poll, count):
+    print(f"Generating {count} random votes for poll '{poll.title}' ({poll.slug})...")
+    
+    words = ["Challenging", "Growth", "Fast", "AI", "Remote", "Busy", "Exciting", "Chaotic", "Innovative", "Collaborative"]
+    
+    # Pre-fetch questions and options to improve performance
+    questions = db.query(models.Question).filter(models.Question.poll_id == poll.id).all()
+    q_data = []
+    for q in questions:
+        options = db.query(models.Option).filter(models.Option.question_id == q.id).all()
+        q_data.append({"q": q, "opts": options})
 
-def seed_data(target_username="admin"):
+    for i in range(count):
+        for item in q_data:
+            q = item["q"]
+            opts = item["opts"]
+            
+            vote = models.Vote(question_id=q.id)
+            
+            if q.question_type == "multiple_choice" and opts:
+                selected_opt = random.choice(opts)
+                vote.option_id = selected_opt.id
+            
+            elif q.question_type == "open_ended":
+                 vote.text_answer = random.choice(words)
+
+            db.add(vote)
+            
+        # Commit in batches of 100 to avoid huge transactions if count is large
+        if (i + 1) % 100 == 0:
+            db.commit()
+            print(f"  ...generated {i + 1} votes")
+
+    db.commit()
+    print(f"Successfully added {count} votes to poll '{poll.slug}'!")
+
+def seed_initial_data(target_username="admin", count=100):
     db = SessionLocal()
     try:
         # 1. Get User
@@ -25,8 +62,6 @@ def seed_data(target_username="admin"):
         # 2. Create Poll
         poll_title = "Tech Team Survey 2025"
         slug = secrets.token_hex(3)
-        # Set close date to 7 days from now
-        import datetime
         closes_at = datetime.datetime.utcnow() + datetime.timedelta(days=7)
         poll = models.Poll(title=poll_title, slug=slug, owner_id=user.id, is_active=True, closes_at=closes_at)
         db.add(poll)
@@ -92,8 +127,6 @@ def seed_data(target_username="admin"):
             }
         ]
 
-        created_questions = []
-
         for idx, q_data in enumerate(questions_data):
             question = models.Question(
                 text=q_data["text"],
@@ -107,44 +140,17 @@ def seed_data(target_username="admin"):
             db.refresh(question)
             
             # Add options
-            created_opts = []
             if q_data["options"]:
                 for opt_text in q_data["options"]:
                     option = models.Option(text=opt_text, question_id=question.id)
                     db.add(option)
-                    created_opts.append(option)
                 db.commit()
             
-            created_questions.append({"q": question, "opts": created_opts})
-
         print("Created Questions and Options.")
 
-        # 4. Generate 100 Votes
-        print("Generating 100 responses...")
-        
-        words = ["Challenging", "Growth", "Fast", "AI", "Remote", "Busy", "Exciting", "Chaotic"]
+        # 4. Generate Random Votes
+        generate_random_votes(db, poll, count)
 
-        for i in range(100):
-            # For each question, cast a vote
-            for item in created_questions:
-                q = item["q"]
-                opts = item["opts"]
-                
-                vote = models.Vote(question_id=q.id)
-                
-                if q.question_type == "multiple_choice" and opts:
-                    # Pick a random option, weighted slightly to make charts interesting
-                    # e.g. triangular distribution to favor middle options or just random
-                    selected_opt = random.choice(opts)
-                    vote.option_id = selected_opt.id
-                
-                elif q.question_type == "open_ended":
-                     vote.text_answer = random.choice(words)
-
-                db.add(vote)
-        
-        db.commit()
-        print("Successfully generated 100 responses!")
         print(f"Access the poll at: http://localhost:8081/poll/{slug}/display")
         print(f"Edit the poll at: http://localhost:8081/admin/poll/{slug}/edit")
 
@@ -161,6 +167,30 @@ def seed_data(target_username="admin"):
     finally:
         db.close()
 
+def seed_existing_poll(slug: str, count: int):
+    db = SessionLocal()
+    try:
+        poll = db.query(models.Poll).filter(models.Poll.slug == slug).first()
+        if not poll:
+            print(f"Error: Poll with slug '{slug}' not found.")
+            return
+
+        generate_random_votes(db, poll, count)
+    except Exception as e:
+        print(f"Error seeding data: {e}")
+        db.rollback()
+    finally:
+        db.close()
+
 if __name__ == "__main__":
-    target_user = sys.argv[1] if len(sys.argv) > 1 else "admin"
-    seed_data(target_user)
+    parser = argparse.ArgumentParser(description="Seed Data Script")
+    parser.add_argument("--slug", help="Slug of existing poll to seed votes for")
+    parser.add_argument("--count", type=int, default=100, help="Number of random votes to generate (default: 100)")
+    parser.add_argument("--user", default="admin", help="Username for initial seed (default: admin)")
+    
+    args = parser.parse_args()
+
+    if args.slug:
+        seed_existing_poll(args.slug, args.count)
+    else:
+        seed_initial_data(args.user, args.count)
