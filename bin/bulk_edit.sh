@@ -124,6 +124,13 @@ def import_poll(filename: str):
                     if opt_id and opt_id in existing_options:
                         option = existing_options[opt_id]
                         option.text = opt_data.get("text", option.text)
+                    else:
+                        # Create new option if ID is missing or not found (e.g. user added manually to JSON)
+                        new_text = opt_data.get("text")
+                        if new_text:
+                            sys.stderr.write(f"  Creating new option for question {question.id}: {new_text}\n")
+                            new_option = models.Option(question_id=question.id, text=new_text)
+                            db.add(new_option)
 
         db.commit()
         sys.stderr.write(f"Successfully imported updates for poll '{slug}'\n")
