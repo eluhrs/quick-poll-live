@@ -48,17 +48,12 @@ function VotingPlayer({ poll, onSubmit, isPreview = false }) {
         }
     }, [timeLeft, isPlaying, isPreview, poll.slide_duration]);
 
-    // --- BOT PROTECTION & INTERACTION LOCK ---
     const [honey, setHoney] = useState('');
     const mountedAt = useRef(Date.now());
-    const [isTransitioning, setIsTransitioning] = useState(false);
 
-    // Reset speed limit and lock interaction on slide change
+    // Reset speed limit on slide change
     useEffect(() => {
         mountedAt.current = Date.now();
-        setIsTransitioning(true);
-        const timer = setTimeout(() => setIsTransitioning(false), 500);
-        return () => clearTimeout(timer);
     }, [currentQIndex]);
 
     const handleNext = (force = false) => {
@@ -77,9 +72,8 @@ function VotingPlayer({ poll, onSubmit, isPreview = false }) {
 
         // BOT CHECK 2: Speed Limit
         // If trying to submit within 1 second of SLIDE LOAD, it's inhumane.
-        // Also checks isTransitioning (500ms hard lock)
-        if (!force && !isPreview && !isDev && (isTransitioning || (Date.now() - mountedAt.current < 1000))) {
-            console.warn("Speed limit or transition lock triggered.");
+        if (!force && !isPreview && !isDev && (Date.now() - mountedAt.current < 1000)) {
+            console.warn("Speed limit triggered.");
             return;
         }
 
@@ -139,7 +133,7 @@ function VotingPlayer({ poll, onSubmit, isPreview = false }) {
                     <div className="bg-white p-6 rounded-xl shadow-lg border-t-4 border-primary text-left">
                         <h2 className="text-xl font-bold mb-6 text-gray-900 leading-tight">{question.text}</h2>
 
-                        <div className={`space-y-3 transition-opacity duration-200 ${isTransitioning ? 'opacity-50 pointer-events-none' : 'opacity-100'}`} key={question.id}>
+                        <div className="space-y-3" key={question.id}>
                             {question.question_type === 'multiple_choice' && question.options.map(opt => (
                                 <button
                                     key={opt.id}
