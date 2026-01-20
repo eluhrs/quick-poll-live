@@ -79,6 +79,11 @@ function VotingPlayer({ poll, onSubmit, isPreview = false }) {
             return;
         }
 
+        // Force blur to remove focus from buttons on mobile
+        if (document.activeElement instanceof HTMLElement) {
+            document.activeElement.blur();
+        }
+
         if (currentQIndex < poll.questions.length - 1) {
             setCurrentQIndex(prev => prev + 1);
         } else {
