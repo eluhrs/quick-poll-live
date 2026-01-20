@@ -480,14 +480,14 @@ function EditPoll() {
                                                 className={`relative p-3 rounded-xl border-2 text-left transition-all ${settingsForm.color_palette === p.id ? 'border-primary bg-secondary/30 ring-1 ring-primary' : 'border-gray-200 hover:border-gray-300'}`}
                                             >
                                                 <div className="flex flex-col h-12 w-full gap-1 mb-2">
-                                                    <div className="flex h-1/2 w-full gap-1">
+                                                    <div className="grid grid-cols-6 h-1/2 w-full gap-0.5">
                                                         {p.colors.slice(0, 6).map((c, i) => (
-                                                            <div key={`t-${i}`} className="h-full flex-1 rounded-sm" style={{ backgroundColor: c }} />
+                                                            <div key={`t-${i}`} className="h-full w-full" style={{ backgroundColor: c }} />
                                                         ))}
                                                     </div>
-                                                    <div className="flex h-1/2 w-full gap-1">
+                                                    <div className="grid grid-cols-6 h-1/2 w-full gap-0.5">
                                                         {p.colors.slice(6, 12).map((c, i) => (
-                                                            <div key={`b-${i}`} className="h-full flex-1 rounded-sm" style={{ backgroundColor: c }} />
+                                                            <div key={`b-${i}`} className="h-full w-full" style={{ backgroundColor: c }} />
                                                         ))}
                                                     </div>
                                                 </div>
