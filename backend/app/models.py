@@ -34,7 +34,7 @@ class Poll(Base):
     owner_id = Column(Integer, ForeignKey("users.id"))
 
     owner = relationship("User", back_populates="polls")
-    questions = relationship("Question", back_populates="poll", cascade="all, delete-orphan")
+    questions = relationship("Question", back_populates="poll", cascade="all, delete-orphan", order_by="Question.order")
 
 class Question(Base):
     __tablename__ = "questions"
