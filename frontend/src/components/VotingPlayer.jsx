@@ -151,7 +151,7 @@ function VotingPlayer({ poll, onSubmit, isPreview = false }) {
                     <div className="bg-white p-6 rounded-xl shadow-lg border-t-4 border-primary text-left">
                         <h2 className="text-xl font-bold mb-6 text-gray-900 leading-tight">{question.text}</h2>
 
-                        <div className="space-y-3">
+                        <div className="space-y-3" key={question.id}>
                             {question.question_type === 'multiple_choice' && question.options.map(opt => (
                                 <button
                                     key={opt.id}
