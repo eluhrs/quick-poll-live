@@ -58,10 +58,12 @@ def delete_user(db, username):
         return
 
     # Reassign polls to 'admin' (or system owner) to prevent deletion or constraint errors
-    # Try to find 'admin' user
-    fallback_user = db.query(models.User).filter(models.User.username == "admin").first()
+    # Try to find 'admin' user, BUT ensure it's not the user we are deleting
+    fallback_user = None
+    if username != "admin":
+        fallback_user = db.query(models.User).filter(models.User.username == "admin").first()
     
-    # If 'admin' doesn't exist (edge case), try ID 1, or just any user that isn't the one being deleted
+    # If 'admin' doesn't exist OR we are deleting 'admin', pick any valid user
     if not fallback_user:
         fallback_user = db.query(models.User).filter(models.User.id != user.id).first()
     
