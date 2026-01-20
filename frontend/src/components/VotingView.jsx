@@ -83,17 +83,14 @@ function VotingView() {
                     <div className="flex justify-center mb-4 text-green-500">
                         <CheckCircle size={64} />
                     </div>
-                    <h1 className="text-3xl font-bold mb-4 text-gray-900">Thank You!</h1>
-                    <p className="text-gray-600 font-medium whitespace-pre-line mb-6">
-                        Your vote has been submitted successfully.
-                        {'\n'}
-                        Automatically redirected you to the <Link to={`/${slug}/results`} className="text-blue-600 underline hover:text-blue-800">results page</Link>.
-                    </p>
-                    <div className="mt-4">
-                        <div className="animate-pulse h-1 bg-primary/20 rounded-full w-24 mx-auto overflow-hidden">
-                            <div className="h-full bg-primary animate-progress origin-left"></div>
-                        </div>
-                    </div>
+                    <h1 className="text-3xl font-bold mb-2 text-gray-900">Thank You!</h1>
+                    <p className="text-gray-600 mb-6">Your vote has been submitted successfully.</p>
+                    <Link
+                        to={`/${slug}/results`}
+                        className="inline-flex items-center gap-2 text-primary font-bold hover:underline"
+                    >
+                        View Results <ArrowRight size={18} />
+                    </Link>
                 </div>
             </div>
         );
