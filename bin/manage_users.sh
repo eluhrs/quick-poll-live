@@ -9,7 +9,7 @@ if [ "$#" -eq 0 ]; then
     echo "Examples:"
     echo "  $0 list                (List all users)"
     echo "  $0 admin newpassword   (Update 'admin' password or create new user)"
-    echo "  $0 delete olduser      (Delete 'olduser' and reassign polls to 'admin')"
+    echo "  $0 delete olduser      (Delete 'olduser' and reassign polls to another user)"
     exit 1
 fi
 
