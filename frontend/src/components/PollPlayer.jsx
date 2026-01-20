@@ -31,7 +31,9 @@ const darkenColorForText = (hex) => {
 const getSmartAxisWidth = (data, key = 'name') => {
     if (!data || data.length === 0) return 40;
     const maxLen = Math.max(...data.map(d => (d[key] || '').toString().length));
-    return Math.min(Math.max(maxLen * 7, 40), 300);
+    // Mobile constraint: Max 150px (approx 35-40% of screen) to leave room for bars
+    const maxAllowed = window.innerWidth < 768 ? 150 : 300;
+    return Math.min(Math.max(maxLen * 7, 40), maxAllowed);
 };
 
 // Memoized Helper Components
@@ -231,7 +233,7 @@ const PollVisualizer = ({ question, colors, isPreview }) => {
         return (
             <div className={heightClass}>
                 <ChartWrapper withLegend={true} data={data} colors={colors}>
-                    <RadialBarChart cx="50%" cy="50%" innerRadius="10%" outerRadius="90%" barSize={20} data={data}>
+                    <RadialBarChart cx="50%" cy="50%" innerRadius="20%" outerRadius="100%" barSize={60} data={data}>
                         <RadialBar minAngle={15} label={{ position: 'insideStart', fill: '#000', fontWeight: 'bold' }} background clockWise dataKey="votes">
                             {data.map((entry, index) => <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />)}
                         </RadialBar>
@@ -268,7 +270,7 @@ const PollVisualizer = ({ question, colors, isPreview }) => {
         return (
             <div className={heightClass}>
                 <ChartWrapper data={data} colors={colors}>
-                    <BarChart layout="vertical" data={data} margin={{ top: 20, right: 50, left: 10, bottom: 5 }}>
+                    <BarChart layout="vertical" data={data} margin={{ top: 20, right: 20, left: 10, bottom: 5 }}>
                         <XAxis type="number" stroke={axisColor} tick={{ fill: axisColor, fontSize: fontSize }} allowDecimals={false} hide />
                         <YAxis
                             type="category"
@@ -322,8 +324,8 @@ const PollVisualizer = ({ question, colors, isPreview }) => {
         };
 
         return (
-            <div className={`${heightClass} w-4/5 mx-auto`}>
-                <ResponsiveContainer width="100%" height="100%">
+            <div className={`${heightClass} w-full`}>
+                <ChartWrapper withLegend={true} data={data} colors={colors}>
                     <Treemap
                         data={data}
                         dataKey="votes"
@@ -333,7 +335,7 @@ const PollVisualizer = ({ question, colors, isPreview }) => {
                         content={<CustomTreemapContent colors={colors} />}
                         isAnimationActive={false}
                     />
-                </ResponsiveContainer>
+                </ChartWrapper>
             </div>
         );
     }
