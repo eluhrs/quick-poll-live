@@ -85,7 +85,7 @@ function VotingView() {
                     </div>
                     <h1 className="text-3xl font-bold mb-4 text-gray-900">Thank You!</h1>
                     <p className="text-gray-600 font-medium whitespace-pre-line mb-6">
-                        Thank you for voting.
+                        Your vote has been submitted successfully.
                         {'\n'}
                         Automatically redirected you to the <Link to={`/${slug}/results`} className="text-blue-600 underline hover:text-blue-800">results page</Link>.
                     </p>
@@ -109,7 +109,7 @@ function VotingView() {
                         <CheckCircle size={64} />
                     </div>
                     <h1 className="text-3xl font-bold mb-2 text-gray-900">Thank You!</h1>
-                    <p className="text-gray-600 mb-6">Your votes have been submitted successfully.</p>
+                    <p className="text-gray-600 mb-6">Your vote has been submitted successfully.</p>
                     <Link
                         to={`/${slug}/results`}
                         className="inline-flex items-center gap-2 text-primary font-bold hover:underline"
