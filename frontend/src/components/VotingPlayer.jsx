@@ -108,9 +108,20 @@ function VotingPlayer({ poll, onSubmit, isPreview = false }) {
         }
     };
 
-    // ... handleBack helper omitted
+    const handleBack = () => {
+        if (currentQIndex > 0) {
+            setCurrentQIndex(prev => prev - 1);
+        } else {
+            // Loop to end? PollPlayer loops.
+            setCurrentQIndex(poll.questions.length - 1);
+        }
+    };
 
-    // ... handleManualNext helper omitted
+    // Manual Arrow Click (Scrubbing - skip validation in preview)
+    const handleManualNext = () => {
+        if (isPreview) handleNext(true);
+        else handleNext();
+    };
 
     const question = poll.questions[currentQIndex];
     const isLast = currentQIndex === poll.questions.length - 1;
