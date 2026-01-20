@@ -134,69 +134,74 @@ function VotingPlayer({ poll, onSubmit, isPreview = false }) {
 
                 {/* ... Bot / Closed checks ... */}
 
-                <div className={`space-y-3 transition-opacity duration-200 ${isTransitioning ? 'opacity-50 pointer-events-none' : 'opacity-100'}`} key={question.id}>
-                    {question.question_type === 'multiple_choice' && question.options.map(opt => (
-                        <button
-                            key={opt.id}
-                            onClick={() => handleOptionSelect(question.id, opt.id)}
-                            // In preview, we always allow interaction even if poll closed (to test)
-                            disabled={!poll.is_active && !isPreview}
-                            className={`w-full text-left p-4 rounded-lg border-2 transition-all active:scale-[0.98] ${currentAnswer?.value === opt.id
-                                ? 'border-primary bg-primary/5 text-primary font-bold shadow-sm'
-                                : 'border-gray-100 [@media(hover:hover)]:hover:border-primary/30 [@media(hover:hover)]:hover:bg-gray-50 text-gray-700'
-                                }`}
-                        >
-                            {opt.text}
-                        </button>
-                    ))}
+                {/* Question Card */}
+                {question && (
+                    <div className="bg-white p-6 rounded-xl shadow-lg border-t-4 border-primary text-left">
+                        <h2 className="text-xl font-bold mb-6 text-gray-900 leading-tight">{question.text}</h2>
 
-                    {question.question_type === 'open_ended' && (
-                        <textarea
-                            className="w-full border-2 border-gray-200 rounded-lg p-4 focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition"
-                            rows={4}
-                            placeholder="Type your answer here..."
-                            value={currentAnswer?.isText ? currentAnswer.value : ''}
-                            onChange={(e) => handleTextChange(question.id, e.target.value)}
-                            disabled={!poll.is_active && !isPreview}
-                        />
-                    )}
-                </div>
+                        <div className={`space-y-3 transition-opacity duration-200 ${isTransitioning ? 'opacity-50 pointer-events-none' : 'opacity-100'}`} key={question.id}>
+                            {question.question_type === 'multiple_choice' && question.options.map(opt => (
+                                <button
+                                    key={opt.id}
+                                    onClick={() => handleOptionSelect(question.id, opt.id)}
+                                    // In preview, we always allow interaction even if poll closed (to test)
+                                    disabled={!poll.is_active && !isPreview}
+                                    className={`w-full text-left p-4 rounded-lg border-2 transition-all active:scale-[0.98] ${currentAnswer?.value === opt.id
+                                        ? 'border-primary bg-primary/5 text-primary font-bold shadow-sm'
+                                        : 'border-gray-100 [@media(hover:hover)]:hover:border-primary/30 [@media(hover:hover)]:hover:bg-gray-50 text-gray-700'
+                                        }`}
+                                >
+                                    {opt.text}
+                                </button>
+                            ))}
 
-                {/* Navigation - Standard Form Buttons */}
-                <div className="flex justify-between items-center mt-8 pt-6 border-t border-gray-100">
-                    <button
-                        onClick={handleBack}
-                        disabled={currentQIndex === 0 && !isPreview} // Allow looping in preview manual controls, but button here usually strict? Let's keep strict for "Form" feeling.
-                        className={`flex items-center gap-2 px-4 py-2 rounded font-medium transition ${currentQIndex === 0 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:text-gray-800'
-                            }`}
-                    >
-                        <ArrowLeft size={20} /> Back
-                    </button>
+                            {question.question_type === 'open_ended' && (
+                                <textarea
+                                    className="w-full border-2 border-gray-200 rounded-lg p-4 focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition"
+                                    rows={4}
+                                    placeholder="Type your answer here..."
+                                    value={currentAnswer?.isText ? currentAnswer.value : ''}
+                                    onChange={(e) => handleTextChange(question.id, e.target.value)}
+                                    disabled={!poll.is_active && !isPreview}
+                                />
+                            )}
+                        </div>
 
-                    <button
-                        onClick={() => handleNext()}
-                        disabled={(!poll.is_active && !isPreview)}
-                        className="bg-primary text-white px-6 py-3 rounded-lg font-bold hover:bg-primary-hover transition transform active:scale-95 flex items-center gap-2 shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        {isLast ? (isPreview ? 'Finish Preview' : 'Submit Votes') : 'Next'}
-                        <ArrowRight size={20} />
-                    </button>
-                </div>
-            </div>
+                        {/* Navigation - Standard Form Buttons */}
+                        <div className="flex justify-between items-center mt-8 pt-6 border-t border-gray-100">
+                            <button
+                                onClick={handleBack}
+                                disabled={currentQIndex === 0 && !isPreview} // Allow looping in preview manual controls, but button here usually strict? Let's keep strict for "Form" feeling.
+                                className={`flex items-center gap-2 px-4 py-2 rounded font-medium transition ${currentQIndex === 0 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:text-gray-800'
+                                    }`}
+                            >
+                                <ArrowLeft size={20} /> Back
+                            </button>
+
+                            <button
+                                onClick={() => handleNext()}
+                                disabled={(!poll.is_active && !isPreview)}
+                                className="bg-primary text-white px-6 py-3 rounded-lg font-bold hover:bg-primary-hover transition transform active:scale-95 flex items-center gap-2 shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {isLast ? (isPreview ? 'Finish Preview' : 'Submit Votes') : 'Next'}
+                                <ArrowRight size={20} />
+                            </button>
+                        </div>
+                    </div>
                 )}
 
-            {/* Preview Controls - ONLY visible in Preview Mode */}
-            {isPreview && (
-                <div className="h-12 flex justify-center items-center gap-6 text-gray-400 hover:text-gray-600 transition border-t border-gray-100 mt-8">
-                    <button onClick={handleBack} className="p-2 hover:bg-gray-100 rounded-full transition" title="Previous Slide"><ChevronLeft size={24} /></button>
-                    <button onClick={() => setIsPlaying(!isPlaying)} className="p-2 hover:bg-gray-100 rounded-full transition text-primary" title={isPlaying ? "Pause" : "Auto-Play"}>
-                        {isPlaying ? <Pause size={24} /> : <Play size={24} />}
-                    </button>
-                    <button onClick={handleManualNext} className="p-2 hover:bg-gray-100 rounded-full transition" title="Next Slide"><ChevronRight size={24} /></button>
-                </div>
-            )}
+                {/* Preview Controls - ONLY visible in Preview Mode */}
+                {isPreview && (
+                    <div className="h-12 flex justify-center items-center gap-6 text-gray-400 hover:text-gray-600 transition border-t border-gray-100 mt-8">
+                        <button onClick={handleBack} className="p-2 hover:bg-gray-100 rounded-full transition" title="Previous Slide"><ChevronLeft size={24} /></button>
+                        <button onClick={() => setIsPlaying(!isPlaying)} className="p-2 hover:bg-gray-100 rounded-full transition text-primary" title={isPlaying ? "Pause" : "Auto-Play"}>
+                            {isPlaying ? <Pause size={24} /> : <Play size={24} />}
+                        </button>
+                        <button onClick={handleManualNext} className="p-2 hover:bg-gray-100 rounded-full transition" title="Next Slide"><ChevronRight size={24} /></button>
+                    </div>
+                )}
+            </div>
         </div>
-
     );
 }
 
