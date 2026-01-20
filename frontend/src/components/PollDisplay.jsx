@@ -208,6 +208,13 @@ function PollDisplay() {
                     </div>
                 </div>
             </div>
+
+            {/* Localhost Warning Banner */}
+            {(window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && (
+                <div className="fixed top-0 left-0 w-full bg-yellow-400 text-yellow-900 text-xs font-bold text-center py-1 z-50 shadow-sm">
+                    Warning: Viewing via localhost. QR codes will not work for others. Use your LAN IP/Hostname instead.
+                </div>
+            )}
         </div>
     );
 }
