@@ -232,7 +232,7 @@ const PollVisualizer = ({ question, colors, isPreview }) => {
             <div className={heightClass}>
                 <ChartWrapper withLegend={true} data={data} colors={colors}>
                     <RadialBarChart cx="50%" cy="50%" innerRadius="10%" outerRadius="90%" barSize={20} data={data}>
-                        <RadialBar minAngle={15} label={{ position: 'insideStart', fill: '#fff', fontWeight: 'bold' }} background clockWise dataKey="votes">
+                        <RadialBar minAngle={15} label={{ position: 'insideStart', fill: '#000', fontWeight: 'bold' }} background clockWise dataKey="votes">
                             {data.map((entry, index) => <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />)}
                         </RadialBar>
                     </RadialBarChart>
@@ -331,7 +331,7 @@ const PollVisualizer = ({ question, colors, isPreview }) => {
                         stroke="#fff"
                         fill="#8884d8"
                         content={<CustomTreemapContent colors={colors} />}
-                        isAnimationActive={true}
+                        isAnimationActive={false}
                     />
                 </ResponsiveContainer>
             </div>
