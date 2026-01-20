@@ -69,20 +69,18 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     )
     return {"access_token": access_token, "token_type": "bearer"}
 
-@router.post("/users", response_model=schemas.User)
-def create_user(user: schemas.UserCreate, db: Session = Depends(database.get_db)):
-    db_user = db.query(models.User).filter(models.User.username == user.username).first()
-    if db_user:
-        raise HTTPException(status_code=400, detail="Username already registered")
-    hashed_password = get_password_hash(user.password)
-    db_user = models.User(username=user.username, hashed_password=hashed_password)
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
-    return db_user
+# @router.post("/users", response_model=schemas.User)
+# def create_user(user: schemas.UserCreate, db: Session = Depends(database.get_db)):
+#     # DISABLED FOR SECURITY: Use bin/manage_users.sh instead
+#     db_user = db.query(models.User).filter(models.User.username == user.username).first()
+#     if db_user:
+#         raise HTTPException(status_code=400, detail="Username already registered")
+#     hashed_password = get_password_hash(user.password)
+#     db_user = models.User(username=user.username, hashed_password=hashed_password)
+#     db.add(db_user)
+#     db.commit()
+#     db.refresh(db_user)
+#     return db_user
 
 @router.get("/users/me", response_model=schemas.User)
 async def read_users_me(current_user: models.User = Depends(get_current_user)):
