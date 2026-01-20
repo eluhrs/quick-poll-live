@@ -134,6 +134,17 @@ function VotingPlayer({ poll, onSubmit, isPreview = false }) {
 
                 {/* ... Bot / Closed checks ... */}
 
+                {/* DEBUG OVERLAY */}
+                {new URLSearchParams(window.location.search).get('debug') === 'true' && (
+                    <div className="fixed top-0 left-0 bg-black/80 text-green-400 p-2 text-xs z-50 w-full overflow-auto max-h-32 font-mono pointer-events-none">
+                        <div>Q: {question?.id} | QIdx: {currentQIndex}</div>
+                        <div>OPT: {JSON.stringify(question?.options?.map(o => o.id))}</div>
+                        <div>ANS: {JSON.stringify(answers)}</div>
+                        <div>CUR: {JSON.stringify(currentAnswer)}</div>
+                        <div>TRANS: {isTransitioning ? 'YES' : 'NO'}</div>
+                    </div>
+                )}
+
                 {/* Question Card */}
                 {question && (
                     <div className="bg-white p-6 rounded-xl shadow-lg border-t-4 border-primary text-left">
