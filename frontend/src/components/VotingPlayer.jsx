@@ -196,7 +196,7 @@ function VotingPlayer({ poll, onSubmit, isPreview = false }) {
                 </div>
             )}
         </div>
-        </div >
+
     );
 }
 
