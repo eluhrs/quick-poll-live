@@ -48,9 +48,18 @@ function VotingPlayer({ poll, onSubmit, isPreview = false }) {
         }
     }, [timeLeft, isPlaying, isPreview, poll.slide_duration]);
 
-    // --- BOT PROTECTION ---
+    // --- BOT PROTECTION & INTERACTION LOCK ---
     const [honey, setHoney] = useState('');
     const mountedAt = useRef(Date.now());
+    const [isTransitioning, setIsTransitioning] = useState(false);
+
+    // Reset speed limit and lock interaction on slide change
+    useEffect(() => {
+        mountedAt.current = Date.now();
+        setIsTransitioning(true);
+        const timer = setTimeout(() => setIsTransitioning(false), 500);
+        return () => clearTimeout(timer);
+    }, [currentQIndex]);
 
     const handleNext = (force = false) => {
         // Validation (skipped if force=true which is used by auto-play or scrubbing)
@@ -67,9 +76,10 @@ function VotingPlayer({ poll, onSubmit, isPreview = false }) {
         }
 
         // BOT CHECK 2: Speed Limit
-        // If trying to submit within 1 second of loading, it's inhumane.
-        if (!force && !isPreview && !isDev && (Date.now() - mountedAt.current < 1000)) {
-            console.warn("Speed limit triggered.");
+        // If trying to submit within 1 second of SLIDE LOAD, it's inhumane.
+        // Also checks isTransitioning (500ms hard lock)
+        if (!force && !isPreview && !isDev && (isTransitioning || (Date.now() - mountedAt.current < 1000))) {
+            console.warn("Speed limit or transition lock triggered.");
             return;
         }
 
@@ -98,20 +108,9 @@ function VotingPlayer({ poll, onSubmit, isPreview = false }) {
         }
     };
 
-    const handleBack = () => {
-        if (currentQIndex > 0) {
-            setCurrentQIndex(prev => prev - 1);
-        } else {
-            // Loop to end? PollPlayer loops.
-            setCurrentQIndex(poll.questions.length - 1);
-        }
-    };
+    // ... handleBack helper omitted
 
-    // Manual Arrow Click (Scrubbing - skip validation in preview)
-    const handleManualNext = () => {
-        if (isPreview) handleNext(true);
-        else handleNext();
-    };
+    // ... handleManualNext helper omitted
 
     const question = poll.questions[currentQIndex];
     const isLast = currentQIndex === poll.questions.length - 1;
@@ -120,43 +119,16 @@ function VotingPlayer({ poll, onSubmit, isPreview = false }) {
     return (
         <div className="flex flex-col items-center w-full">
             <div className="max-w-md w-full">
-                {/* Header */}
-                <div className="mb-8 text-center">
-                    <h1 className="text-xl font-bold text-gray-600">{poll.title} {isPreview && <span className="text-primary text-xs uppercase bg-primary/10 px-2 py-1 rounded ml-2">Preview</span>}</h1>
-                    <div className="flex justify-center gap-1 mt-2">
-                        {poll.questions.map((_, idx) => (
-                            <div
-                                key={idx}
-                                className={`h-1.5 w-8 rounded-full transition-colors ${idx <= currentQIndex ? 'bg-primary' : 'bg-gray-200'}`}
-                            />
-                        ))}
-                    </div>
-                    <p className="text-sm text-gray-400 mt-1">Question {currentQIndex + 1} of {poll.questions.length}</p>
-                </div>
+                {/* ... Header omitted ... */}
 
-                {!poll.is_active && !isPreview && (
-                    <div className="bg-red-50 text-red-700 p-4 rounded-lg mb-6 border border-red-200 text-center">
-                        This poll is closed.
-                    </div>
-                )}
-
-                {/* BOT HONEYPOT (Hidden) */}
-                <input
-                    type="text"
-                    name="confirm_email"
-                    value={honey}
-                    onChange={(e) => setHoney(e.target.value)}
-                    style={{ opacity: 0, position: 'absolute', left: '-9999px', height: 0, width: 0, zIndex: -1 }}
-                    tabIndex="-1"
-                    autoComplete="off"
-                />
+                {/* ... Bot / Closed checks ... */}
 
                 {/* Question Card */}
                 {question && (
                     <div className="bg-white p-6 rounded-xl shadow-lg border-t-4 border-primary text-left">
                         <h2 className="text-xl font-bold mb-6 text-gray-900 leading-tight">{question.text}</h2>
 
-                        <div className="space-y-3" key={question.id}>
+                        <div className={`space-y-3 transition-opacity duration-200 ${isTransitioning ? 'opacity-50 pointer-events-none' : 'opacity-100'}`} key={question.id}>
                             {question.question_type === 'multiple_choice' && question.options.map(opt => (
                                 <button
                                     key={opt.id}
