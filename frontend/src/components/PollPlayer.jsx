@@ -36,12 +36,25 @@ const getSmartAxisWidth = (data, key = 'name') => {
     return Math.min(Math.max(maxLen * 7, 40), maxAllowed);
 };
 
+const getSpreadColor = (index, numOptions, colors) => {
+    if (!colors || colors.length === 0) return '#000';
+    if (numOptions > 4 || colors.length < 6) return colors[index % colors.length];
+
+    // For 2-4 options, spread them out across the palette for better contrast
+    // Most palettes we have are 12 colors (6 light, 6 dark) or 6 colors.
+    // We want to skip adjacent similar colors.
+    const stride = Math.floor(colors.length / numOptions);
+    // Use prime or large jumps to avoid picking immediately adjacent hues
+    const spreadIndex = (index * Math.max(stride, 2)) % colors.length;
+    return colors[spreadIndex];
+};
+
 // Memoized Helper Components
 const SmartLegend = React.memo(({ data, colors }) => (
     <div className="flex flex-wrap justify-center gap-4 mt-4 p-2 bg-white/50 rounded-lg border border-gray-100">
         {data.map((entry, index) => (
             <div key={`legend-${index}`} className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: colors[index % colors.length] }} />
+                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: getSpreadColor(index, data.length, colors) }} />
                 <span className="text-sm font-bold text-gray-700">{entry.name}</span>
                 <span className="text-xs text-gray-400">({entry.votes})</span>
             </div>
@@ -125,7 +138,7 @@ const PollVisualizer = ({ question, colors, isPreview }) => {
                                 key={i}
                                 style={{
                                     fontSize: `${size}px`,
-                                    color: darkenColorForText(colors[i % colors.length]), // Ensure text is legible against white
+                                    color: darkenColorForText(getSpreadColor(i, cloudData.length, colors)), // Ensure text is legible against white
                                     fontFamily: 'Impact, sans-serif'
                                 }}
                                 className="transition-all hover:scale-110 cursor-default leading-none"
@@ -147,17 +160,17 @@ const PollVisualizer = ({ question, colors, isPreview }) => {
         const outerRadius = isPreview ? '80%' : '80%';
 
         // Custom label to ensure contrast. 
-        // Recharts passes { cx, cy, midAngle, innerRadius, outerRadius, percent, index } to custom labels
+        // Recharts passes { cx, cy, midAngle, innerRadius, outerRadius, percent, index, name } to custom labels
         const renderCustomLabel = (props) => {
-            const { cx, cy, midAngle, innerRadius, outerRadius, percent, index } = props;
+            const { cx, cy, midAngle, outerRadius, percent, index, name } = props;
             const RADIAN = Math.PI / 180;
             // Position label outside
-            const radius = outerRadius * 1.2;
+            const radius = outerRadius * 1.1; // Slightly closer than 1.2 to leave room for text
             const x = cx + radius * Math.cos(-midAngle * RADIAN);
             const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
             // Use the slice color if it's dark enough, otherwise use dark gray
-            const sliceColor = colors[index % colors.length];
+            const sliceColor = getSpreadColor(index, data.length, colors);
             const textColor = darkenColorForText(sliceColor);
 
             return (
@@ -170,7 +183,8 @@ const PollVisualizer = ({ question, colors, isPreview }) => {
                     fontSize={12}
                     fontWeight="bold"
                 >
-                    {`${(percent * 100).toFixed(0)}%`}
+                    <tspan x={x} dy="-0.5em">{name}</tspan>
+                    <tspan x={x} dy="1.2em">{`${(percent * 100).toFixed(0)}%`}</tspan>
                 </text>
             );
         };
@@ -185,13 +199,13 @@ const PollVisualizer = ({ question, colors, isPreview }) => {
                             cy="50%"
                             innerRadius={innerRadius}
                             outerRadius={outerRadius}
-                            labelLine={!isPreview} // This will still use default stroke color (usually black/slice color)
+                            labelLine={!isPreview}
                             label={!isPreview ? renderCustomLabel : null}
                             fill="#8884d8"
                             dataKey="votes"
                             isAnimationActive={true}
                         >
-                            {data.map((entry, index) => <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />)}
+                            {data.map((entry, index) => <Cell key={`cell-${index}`} fill={getSpreadColor(index, data.length, colors)} />)}
                         </Pie>
                     </PieChart>
                 </ChartWrapper>
@@ -230,14 +244,62 @@ const PollVisualizer = ({ question, colors, isPreview }) => {
     }
 
     if (visType === 'radial_bar') {
+        const innerRadius = isPreview ? '40%' : '50%';
+        const outerRadius = isPreview ? '80%' : '80%';
+
+        // Custom label, identical to the Donut/Pie chart, to draw cleanly outside
+        const renderCustomLabel = (props) => {
+            const { cx, cy, midAngle, outerRadius: oR, percent, index, name, value } = props;
+            const RADIAN = Math.PI / 180;
+            // Position label outside
+            const radius = oR * 1.1;
+            const x = cx + radius * Math.cos(-midAngle * RADIAN);
+            const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+            const sliceColor = getSpreadColor(index, data.length, colors);
+            const textColor = darkenColorForText(sliceColor);
+
+            // To ensure it fits, we truncate very long names
+            let displayName = name || '';
+            if (displayName.length > 25) displayName = displayName.substring(0, 22) + '...';
+
+            return (
+                <text
+                    x={x}
+                    y={y}
+                    fill={textColor}
+                    textAnchor={x > cx ? 'start' : 'end'}
+                    dominantBaseline="central"
+                    fontSize={12}
+                    fontWeight="bold"
+                >
+                    <tspan x={x} dy="-0.5em">{displayName} ({value})</tspan>
+                    <tspan x={x} dy="1.2em">{`${(percent * 100).toFixed(0)}%`}</tspan>
+                </text>
+            );
+        };
+
         return (
             <div className={heightClass}>
                 <ChartWrapper withLegend={true} data={data} colors={colors}>
-                    <RadialBarChart cx="50%" cy="50%" innerRadius="20%" outerRadius="100%" barSize={60} data={data}>
-                        <RadialBar minAngle={15} label={{ position: 'insideStart', fill: '#000', fontWeight: 'bold' }} background clockWise dataKey="votes">
-                            {data.map((entry, index) => <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />)}
-                        </RadialBar>
-                    </RadialBarChart>
+                    <PieChart>
+                        <Pie
+                            data={data}
+                            cx="50%"
+                            cy="70%" /* Shifted down slightly since it's only a top half-circle */
+                            startAngle={180}
+                            endAngle={0}
+                            innerRadius={innerRadius}
+                            outerRadius={outerRadius}
+                            labelLine={!isPreview}
+                            label={!isPreview ? renderCustomLabel : null}
+                            fill="#8884d8"
+                            dataKey="votes"
+                            isAnimationActive={true}
+                        >
+                            {data.map((entry, index) => <Cell key={`cell-${index}`} fill={getSpreadColor(index, data.length, colors)} />)}
+                        </Pie>
+                    </PieChart>
                 </ChartWrapper>
             </div>
         );

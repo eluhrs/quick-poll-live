@@ -101,7 +101,7 @@ function QuestionForm({ initialData, onSubmit, onCancel, confirmLabel = "Add Que
                                 <option value="donut">Donut Chart</option>
                                 <option value="treemap">Treemap</option>
                                 <option value="radar">Radar Chart</option>
-                                <option value="radial_bar">Radial Bar Chart</option>
+                                <option value="radial_bar">Half Pie</option>
                                 <option value="wordcloud">Word Cloud</option>
                             </>
                         ) : (

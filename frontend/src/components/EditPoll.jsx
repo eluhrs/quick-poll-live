@@ -303,7 +303,7 @@ function EditPoll() {
                                                 </div>
                                                 <div className="col-span-2">
                                                     <span className="bg-blue-50 text-blue-600 border border-blue-100 px-2 py-1 rounded text-xs font-medium capitalize block w-fit truncate max-w-full">
-                                                        {q.visualization_type.replace('_', ' ')}
+                                                        {q.visualization_type === 'radial_bar' ? 'Half Pie' : q.visualization_type.replace('_', ' ')}
                                                     </span>
                                                 </div>
                                                 <div className="col-span-2 flex gap-1 justify-end">
